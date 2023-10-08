@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=K2D:wght@800&display=swap');
+
+.font-itim {
+  font-family: 'Itim', cursive;
+}
+
+.font-k2d {
+  font-family: 'K2D', sans-serif;
+}
