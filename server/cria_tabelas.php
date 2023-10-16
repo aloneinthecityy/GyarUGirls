@@ -3,14 +3,34 @@
 include 'config.php';
 
 // Comando SQL para criar a tabela
-$sql = "CREATE TABLE IF NOT EXISTS tb_post (
+$sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
+        id_usuario SERIAL PRIMARY KEY,
+        nm_usuario VARCHAR(50) NOT NULL UNIQUE,
+        email VARCHAR(50) NOT NULL UNIQUE,
+        senha VARCHAR(50) NOT NULL,
+        is_admin BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS tb_post (
         id_post SERIAL PRIMARY KEY,
         id_categoria INTEGER NOT NULL,
         titulo VARCHAR(50),
         imagem BYTEA NOT NULL,
         sinopse text NOT NULL,
         conteudo text NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS tb_comentario (
+        id_comentario SERIAL PRIMARY KEY,
+        id_post INTEGER NOT NULL,
+        id_usuario INTEGER NOT NULL,
+        comentario TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_post) REFERENCES tb_post (id_post)
       );
 
       CREATE TABLE IF NOT EXISTS tb_categoria (
@@ -33,8 +53,7 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_post (
     --   ALTER TABLE tb_post_categoria
     -- ADD CONSTRAINT fk_post_categoria_categoria_id
     -- FOREIGN KEY (id_categoria) REFERENCES tb_categoria(id_categoria);
-    
-      ";
+";
 
 // Executa o comando SQL
 $result = pg_query($conn, $sql);

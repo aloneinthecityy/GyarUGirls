@@ -4,7 +4,7 @@
 session_start();
 
 // Importa as configurações do banco de dados
-include './server/config.php';
+include 'config.php';
 
 // Variáveis para exibir mensagens
 $message = '';
@@ -39,11 +39,7 @@ if (isset($_POST['submit'])) {
 
     // Insere os dados no banco de dados
     $sql = "INSERT INTO tb_post (titulo, imagem, sinopse, conteudo, categoria) VALUES ($1, $2, $3, $4)";
-
-
-    // Recupera o id do post inserido
-    $row = pg_fetch_assoc($result);
-    $id_post = $row['id_post'];
+    $result = pg_query_params($conn, $sql, array($titulo, $imagem, $sinopse, $conteudo));
 
     // Insere as categorias selecionadas na tabela tb_post_categoria
     foreach ($categorias as $categoria) {
