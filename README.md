@@ -1,2 +1,2 @@
-# preline-php-boilerplate
- A simple boilerplate to create CRUD with PHP, Tailwind and Preline UI
+# GyarUGirls
+Uma nova rede social, inspirada nos blogs dos anos 2000, para as garotas que têm uma perspectiva diferenciada ;)
