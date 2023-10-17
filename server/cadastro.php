@@ -11,15 +11,15 @@ $message = '';
 $alert_class = '';
 
 // Função para "higienizar" a entrada de dados
-// function sanitize($input)
-// {
-//   global $conn;
-//   $input = trim($input);
-//   $input = strip_tags($input);
-//   $input = htmlspecialchars($input);
-//   $input = pg_escape_string($conn, $input);
-//   return $input;
-// }
+function sanitize($input)
+{
+  global $conn;
+  $input = trim($input);
+  $input = strip_tags($input);
+  $input = htmlspecialchars($input);
+  $input = pg_escape_string($conn, $input);
+  return $input;
+}
 
 // Verifica se o formulário foi enviado
 if (isset($_POST['submit'])) {

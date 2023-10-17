@@ -1,5 +1,5 @@
 <!-- LÓGICA EM PHP -->
-<?php include './server/src/create.php'; ?>
+<?php include './server/create.php'; ?>
 
 
 <!-- FRONT-END -->
@@ -20,25 +20,55 @@
     <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
 
     <!-- Mensagem de erro -->
-    <?php if (!empty($message)) : ?>
-      <div class="max-w-xs bg-white border rounded-md shadow-lg dark:bg-gray-800 dark:border-gray-700" role="alert">
-        <div class="flex p-4">
+    <?php if (!empty($messageErro)) : ?>
+      <div class="rounded-md bg-red-50 p-4">
+        <div class="flex">
           <div class="flex-shrink-0">
-            <svg class="h-4 w-4 text-red-500 mt-0.5" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z" />
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
             </svg>
           </div>
           <div class="ml-3">
-            <p class="text-sm text-gray-700 dark:text-gray-400">
-              <?php echo $message ?>
-            </p>
+            <h3 class="text-sm font-medium text-red-800">There were 2 errors with your submission</h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul role="list" class="list-disc space-y-1 pl-5">
+                <php? echo $messageErro; ?>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     <?php endif; ?>
 
+    <!-- Mensagem de sucesso -->
+    <?php if (!empty($messageErro)) : ?>
+      <div class="rounded-md bg-green-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <?php echo $message; ?>
+          </div>
+          <div class="ml-auto pl-3">
+            <div class="-mx-1.5 -my-1.5">
+              <button type="button" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50">
+                <span class="sr-only">Dismiss</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <?php endif; ?>
+
+
     <!-- Formulário de criação -->
-    <form action="./create.php" method="post" class="mb-8">
+    <form action="./create.php" method="post" enctype="multipart/form-data" class="mb-8">
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="imagem">
           Imagem:
@@ -68,12 +98,12 @@
         <label class="block text-gray-700 font-bold mb-2" for="categoria">
           Categoria:
         </label>
-        <input type="checkbox" id="alegria" name="categoria[]" value="1">
-        <label for="1"> 1 - Alegria</label><br>
-        <input type="checkbox" id="tristeza" name="categoria[]" value="2">
-        <label for="2"> 2 - tristeza </label><br>
-        <input type="checkbox" id="raiva" name="categoria[]" value="3">
-        <label for="3"> 3 - raiva </label><br>
+        <input type="radio" id="categoria" name="categoria" value="1">
+        <label for="categoria">Categoria 1</label><br>
+        <input type="radio" id="categoria" name="categoria" value="2">
+        <label for="categoria">Categoria 2</label><br>
+        <input type="radio" id="categoria" name="categoria" value="3">
+        <label for="categoria">Categoria 3</label><br>
       </div>
       <div class="flex items-center justify-between">
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" name="submit">
@@ -88,7 +118,7 @@
         <tr>
           <th class="border border-gray-400 px-4 py-2">Título</th>
           <th class="border border-gray-400 px-4 py-2">Imagem</th>
-          <th class="border border-gray-400 px-4 py-2">Sinopse:breve descrição:</th>
+          <th class="border border-gray-400 px-4 py-2">Sinopse/breve descrição:</th>
           <th class="border border-gray-400 px-4 py-2">Conteúdo:</th>
           <th class="border border-gray-400 px-4 py-2">Categoria:</th>
         </tr>
@@ -97,10 +127,10 @@
         <?php while ($row = pg_fetch_assoc($result)) : ?>
           <tr>
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['titulo'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['imagem'] ?></td>
+            <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="100"></td>
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['sinopse'] ?></td>
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['categoria[]'] ?></td>
+            <td class="border border-gray-400 px-4 py-2"><?php echo $row['id_categoria'] ?></td>
             <td class="border border-gray-400 px-4 py-2">
               <a href="#" class="text-blue-500 hover:text-blue-700 px-2">Editar</a>
               <a href="#" class="text-red-500 hover:text-red-700 px-2">Deletar</a>
