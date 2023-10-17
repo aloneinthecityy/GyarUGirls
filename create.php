@@ -16,10 +16,93 @@
 </head>
 
 <body>
+  <!--CABEÇALHO-->
+  <header class="bg-gradient-to-r from-pink-200 to-pink-300">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 justify-between">
+        <div class="flex">
+          <div class="-ml-2 mr-2 flex items-center md:hidden">
+            <!-- Mobile menu button -->
+            <button type="button" class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+              <span class="absolute -inset-0.5"></span>
+              <span class="sr-only">Open main menu</span>
+              <!--
+              Icon when menu is closed.
+
+              Menu open: "hidden", Menu closed: "block"
+            -->
+              <!--
+              Icon when menu is open.
+
+              Menu open: "block", Menu closed: "hidden"
+            -->
+              <!-- <img src="./client/images/gatito.png"> -->
+
+            </button>
+          </div>
+          <div class="flex flex-shrink-0 items-center">
+            <img src="./client/images/gatito.png" style="width: 40%;">
+          </div>
+          <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4">
+            <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
+            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Team</a>
+            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Projects</a>
+            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Calendar</a>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+              <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+              New Job
+            </button>
+          </div>
+          <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
+
+            <!-- Profile dropdown -->
+            <div class="relative ml-3">
+              <div>
+                <button type="button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                  <span class="absolute -inset-1.5"></span>
+                  <span class="sr-only">Open user menu</span>
+                  <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile menu, show/hide based on menu state. -->
+    <div class="md:hidden" id="mobile-menu">
+      <div class="space-y-1 px-2 pb-3 pt-2 sm:px-3">
+        <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
+        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Team</a>
+        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Projects</a>
+        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Calendar</a>
+      </div>
+      <div class="border-t border-pink-600 pb-3 pt-4">
+        <div class="flex items-center px-5 sm:px-6">
+          <div class="flex-shrink-0">
+            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+          </div>
+          <div class="ml-3">
+            <div class="text-base font-medium text-white">Tom Cook</div>
+            <div class="text-sm font-medium text-pink-600">tom@example.com</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
   <div class="container mx-auto px-4 mt-6">
     <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
 
-    <!-- Mensagem de erro -->
+    <!-- Mensagem de erro - BACK END -->
     <?php if (!empty($messageErro)) : ?>
       <div class="rounded-md bg-red-50 p-4">
         <div class="flex">
@@ -29,19 +112,21 @@
             </svg>
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800">There were 2 errors with your submission</h3>
+            <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
             <div class="mt-2 text-sm text-red-700">
-              <ul role="list" class="list-disc space-y-1 pl-5">
-                <php? echo $messageErro; ?>
-              </ul>
+              <!-- <ul role="list" class="list-disc space-y-1 pl-5">
+                <li>Your password must be at least 8 characters</li>
+                <li>Your password must include at least one pro wrestling finishing move</li>
+              </ul> -->
             </div>
           </div>
         </div>
       </div>
+
     <?php endif; ?>
 
-    <!-- Mensagem de sucesso -->
-    <?php if (!empty($messageErro)) : ?>
+    <!-- Mensagem de sucesso - BACK END -->
+    <?php if (!empty($message)) : ?>
       <div class="rounded-md bg-green-50 p-4">
         <div class="flex">
           <div class="flex-shrink-0">
@@ -50,7 +135,7 @@
             </svg>
           </div>
           <div class="ml-3">
-            <?php echo $message; ?>
+            <p> <?php echo $message; ?> </p>
           </div>
           <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
@@ -66,6 +151,33 @@
       </div>
     <?php endif; ?>
 
+    <br>
+    <!-- Mensagem de CONEXÃO DO BANCO -->
+    <?php if (!empty($alertBanco)) : ?>
+      <div class="rounded-md bg-green-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p> <?php echo $alertBanco; ?> </p>
+          </div>
+          <div class="ml-auto pl-3">
+            <div class="-mx-1.5 -my-1.5">
+              <button type="button" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50">
+                <span class="sr-only">Dismiss</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <?php endif; ?>
+    <br>
 
     <!-- Formulário de criação -->
     <form action="./create.php" method="post" enctype="multipart/form-data" class="mb-8">
@@ -98,11 +210,11 @@
         <label class="block text-gray-700 font-bold mb-2" for="categoria">
           Categoria:
         </label>
-        <input type="radio" id="categoria" name="categoria" value="1">
+        <input type="radio" id="categoria1" name="categoria" value="1">
         <label for="categoria">Categoria 1</label><br>
-        <input type="radio" id="categoria" name="categoria" value="2">
+        <input type="radio" id="categoria2" name="categoria" value="2">
         <label for="categoria">Categoria 2</label><br>
-        <input type="radio" id="categoria" name="categoria" value="3">
+        <input type="radio" id="categoria3" name="categoria" value="3">
         <label for="categoria">Categoria 3</label><br>
       </div>
       <div class="flex items-center justify-between">
@@ -141,6 +253,7 @@
       </tbody>
     </table>
   </div>
+
 </body>
 
 </html>

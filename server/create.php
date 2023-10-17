@@ -8,7 +8,6 @@ include 'config.php';
 // Variáveis para exibir mensagens
 $message = '';
 $messageErro = '';
-$alert_class = '';
 
 // Função para "higienizar" a entrada de dados
 function sanitize($input)
@@ -57,43 +56,39 @@ function uploadImagem($imagem)
 }
 
 if (isset($_POST['submit'])) {
-  // Consistência de dados
-  $titulo = sanitize($_POST['titulo']);
-  $sinopse = sanitize($_POST['sinopse']);
-  $conteudo = sanitize($_POST['conteudo']);
-  $id_categoria = sanitize($_POST['categoria']) ? sanitize($_POST['categoria']) : '';;
-
-  // Consistência de imagem
-  if (isset($_FILES['imagem'])) {
-    $imagem = $_FILES['imagem'];
-    $imagemPatch = uploadImagem($imagem);
-  }
-
-
   // Verifica se os campos obrigatórios foram preenchidos
-  if (empty($titulo) || empty($sinopse) || empty($conteudo) || empty($id_categoria) || empty($imagemPatch)) {
+  if (empty($_POST['titulo']) || empty($_POST['sinopse']) || empty($_POST['conteudo']) || empty($_POST['categoria'])) {
     $messageErro = 'Por favor, preencha todos os campos obrigatórios';
-    exit;
-  }
-
-  // Verifica se a categoria existe na tabela tb_categoria
-  $sql = "SELECT id_categoria FROM tb_categoria WHERE id_categoria = $1";
-  $result = pg_query_params($conn, $sql, array($id_categoria));
-  if (pg_num_rows($result) == 0) {
-    $messageErro = 'Categoria não encontrada';
-    exit;
-  }
-
-
-  // Insere os dados na tabela
-  $sql = "INSERT INTO tb_post (id_categoria, titulo, imagem, sinopse, conteudo) VALUES ($1, $2, $3, $4, $5)";
-  $result = pg_query_params($conn, $sql, array($id_categoria, $titulo, $imagemPatch, $sinopse, $conteudo));
-
-  // Verifica se os dados foram inseridos com sucesso
-  if ($result) {
-    $message = 'Dados inseridos com sucesso';
   } else {
-    $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
+    // Consistência de dados
+    $titulo = sanitize($_POST['titulo']);
+    $sinopse = sanitize($_POST['sinopse']);
+    $conteudo = sanitize($_POST['conteudo']);
+    $id_categoria = sanitize($_POST['categoria']);
+
+    // Consistência de imagem
+    if (isset($_FILES['imagem'])) {
+      $imagem = $_FILES['imagem'];
+      $imagemPatch = uploadImagem($imagem);
+    }
+
+    // Verifica se a categoria existe na tabela tb_categoria
+    $sql = "SELECT id_categoria FROM tb_categoria WHERE id_categoria = $1";
+    $result = pg_query_params($conn, $sql, array($id_categoria));
+    if (pg_num_rows($result) == 0) {
+      $messageErro = 'Categoria não encontrada';
+    } else {
+      // Insere os dados na tabela
+      $sql = "INSERT INTO tb_post (id_categoria, titulo, imagem, sinopse, conteudo) VALUES ($1, $2, $3, $4, $5)";
+      $result = pg_query_params($conn, $sql, array($id_categoria, $titulo, $imagemPatch, $sinopse, $conteudo));
+
+      // Verifica se os dados foram inseridos com sucesso
+      if ($result) {
+        $message = 'Dados inseridos com sucesso';
+      } else {
+        $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
+      }
+    }
   }
 }
 
