@@ -25,8 +25,8 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         imagem VARCHAR(100) NOT NULL,
         sinopse text NOT NULL,
         conteudo text NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at DATE DEFAULT CURRENT_DATE,
+        updated_at DATE DEFAULT CURRENT_DATE,
         FOREIGN KEY (id_categoria) REFERENCES tb_categoria(id_categoria)
       );
 
@@ -35,20 +35,20 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         id_post INTEGER NOT NULL,
         id_usuario INTEGER NOT NULL,
         comentario TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at DATE DEFAULT CURRENT_DATE,
         FOREIGN KEY (id_post) REFERENCES tb_post (id_post),
         FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
       );
 
-      CREATE TABLE IF NOT EXISTS tb_resposta (
-        id_resposta SERIAL PRIMARY KEY,
-        id_comentario INTEGER NOT NULL,
-        id_usuario INTEGER NOT NULL,
-        resposta TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (id_comentario) REFERENCES tb_comentario (id_comentario),
-        FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
-      );
+      -- CREATE TABLE IF NOT EXISTS tb_resposta (
+      --   id_resposta SERIAL PRIMARY KEY,
+      --   id_comentario INTEGER NOT NULL,
+      --   id_usuario INTEGER NOT NULL,
+      --   resposta TEXT NOT NULL,
+      --   created_at DATE DEFAULT CURRENT_DATE,
+      --   FOREIGN KEY (id_comentario) REFERENCES tb_comentario (id_comentario),
+      --   FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
+      -- );
 ";
 
 // Executa o comando SQL

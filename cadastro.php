@@ -48,14 +48,6 @@ if (isset($_POST['submit'])) {
 
       // Verifica se os dados foram inseridos com sucesso
       if ($result) {
-        // $message = 'Cadastro Realizado com sucesso!';
-
-        // // Codifica a mensagem para ser usada na URL
-        // $message_encoded = urlencode($message);
-
-        // // Redireciona o usuário para a página de login com a mensagem na URL
-        // header('Location: ./login.php?message=' . $message_encoded);
-
         header('Location: ./login.php');
         exit;
       } else {

@@ -1,17 +1,15 @@
 <!-- LÓGICA EM PHP -->
 <?php
-// Inicia a sessão
+include './server/config.php';
+
 session_start();
 
-if (isset($_SESSION['is_admin']) == 'f') {
+if (!isset($_SESSION['is_admin']) == 't') {
   header('Location: login.php');
+  $messageErro = 'Você não tem permissão para acessar essa página';
   exit();
 }
 
-// Importa as configurações do banco de dados
-include './server/config.php';
-
-// Variáveis para exibir mensagens
 $message = '';
 $messageErro = '';
 

@@ -179,9 +179,9 @@ $result = pg_query($conn, $sql);
               </p>
             </article>
             <div class="botaoDoPost text-center p-8">
-              <button type="button" class="relative inline-flex items-center rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 mx-auto">
+              <a href="post.php?id_post=<?php echo $row['id_post'] ?>&titulo=<?php echo $row['titulo'] ?>" class="relative inline-flex items-center rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 mx-auto">
                 Ver post
-              </button>
+              </a>
             </div>
 
           </div>
@@ -307,6 +307,7 @@ $result = pg_query($conn, $sql);
   }
   echo '</div>';
   echo '</nav>';
+  echo '<br>'
   ?>
 
 

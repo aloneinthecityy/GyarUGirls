@@ -1,11 +1,9 @@
 <!-- LÓGICA PHP -->
 <?php
-session_start();
-
-// Importa as configurações do banco de dados
 include './server/config.php';
 
-// Variáveis para exibir mensagens
+session_start();
+
 $message = '';
 $messageErro = '';
 
@@ -46,16 +44,11 @@ if (isset($_POST['submit'])) {
       }
     } else {
       header('Location: ./login.php?erro=1');
+      $messageErro = 'Usuário ou senha incorretos';
     }
   }
 }
-
-
 ?>
-
-
-
-
 
 <!-- FRONT END -->
 <!DOCTYPE html>
