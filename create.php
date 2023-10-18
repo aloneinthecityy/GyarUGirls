@@ -1,5 +1,111 @@
 <!-- LÓGICA EM PHP -->
-<?php include './server/create.php'; ?>
+<?php
+// Inicia a sessão
+session_start();
+
+if (isset($_SESSION['is_admin']) == 'f') {
+  header('Location: login.php');
+  exit();
+}
+
+// Importa as configurações do banco de dados
+include './server/config.php';
+
+// Variáveis para exibir mensagens
+$message = '';
+$messageErro = '';
+
+// Função para "higienizar" a entrada de dados
+function sanitize($input)
+{
+  global $conn, $messageErro, $message;
+  $input = trim($input);
+  $input = strip_tags($input);
+  $input = htmlspecialchars($input);
+  $input = pg_escape_string($conn, $input);
+  return $input;
+}
+
+// Função para enviar a imagem para o servidor
+function uploadImagem($imagem)
+{
+  global $message, $messageErro;
+  if ($imagem['error'] != 0) {
+    $messageErro = 'Erro ao fazer upload da imagem';
+    exit;
+  }
+
+  if ($imagem['size'] > 2097152) {
+    $messageErro = 'Tamanho de imagem excedido. Tamanho máximo de 2MB!';
+    exit;
+  }
+
+  $pasta = './client/images/upload_post/';
+  $nomeDoArquivo = $imagem['name'];
+  $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
+  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
+
+  if ($extensao != 'jpg' && $extensao != 'png' && $extensao != 'gif' && $extensao != 'jpeg') {
+    $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
+    exit;
+  }
+
+  $patch = $pasta . $novoNome . '.' . $extensao;
+  $verificaEnvioDoArquivo = move_uploaded_file($imagem['tmp_name'], $patch);
+  if ($verificaEnvioDoArquivo == false) {
+    $messageErro = 'Erro ao fazer upload da imagem';
+    exit;
+  } else {
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./client/images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    return $patch;
+  }
+}
+
+if (isset($_POST['submit'])) {
+  // Verifica se os campos obrigatórios foram preenchidos
+  if (empty($_POST['titulo']) || empty($_POST['sinopse']) || empty($_POST['conteudo']) || empty($_POST['categoria'])) {
+    $messageErro = 'Por favor, preencha todos os campos obrigatórios';
+  } else {
+    // Consistência de dados
+    $titulo = sanitize($_POST['titulo']);
+    $sinopse = sanitize($_POST['sinopse']);
+    $conteudo = sanitize($_POST['conteudo']);
+    $id_categoria = sanitize($_POST['categoria']);
+
+    // Consistência de imagem
+    if (isset($_FILES['imagem'])) {
+      $imagem = $_FILES['imagem'];
+      $imagemPatch = uploadImagem($imagem);
+    }
+
+    // Verifica se a categoria existe na tabela tb_categoria
+    $sql = "SELECT id_categoria FROM tb_categoria WHERE id_categoria = $1";
+    $result = pg_query_params($conn, $sql, array($id_categoria));
+    if (pg_num_rows($result) == 0) {
+      $messageErro = 'Categoria não encontrada';
+    } else {
+      // Insere os dados na tabela
+      $sql = "INSERT INTO tb_post (id_categoria, titulo, imagem, sinopse, conteudo) VALUES ($1, $2, $3, $4, $5)";
+      $result = pg_query_params($conn, $sql, array($id_categoria, $titulo, $imagemPatch, $sinopse, $conteudo));
+
+      // Verifica se os dados foram inseridos com sucesso
+      if ($result) {
+        $message = 'Dados inseridos com sucesso';
+      } else {
+        $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
+      }
+    }
+  }
+}
+// Recupera os dados do banco de dados
+$sql = "SELECT * FROM tb_post";
+$result = pg_query($conn, $sql);
+
+// Fecha a conexão com o banco de dados
+pg_close($conn);
+?>
+
+
 
 
 <!-- FRONT-END -->
@@ -64,16 +170,30 @@
             <!-- Profile dropdown -->
             <div class="relative ml-3">
               <div>
-                <button type="button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                <button type="button" id="user-menu-button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                   <span class="absolute -inset-1.5"></span>
                   <span class="sr-only">Open user menu</span>
                   <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
                 </button>
               </div>
+              <!--dropdown menu-->
+              <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                <!-- Active: "bg-gray-100", Not Active: "" -->
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Your Profile</a>
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Settings</a>
+                <form action="./logout.php" method="POST">
+                  <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Sign out</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
     </div>
 
     <!-- Mobile menu, show/hide based on menu state. -->
@@ -254,6 +374,45 @@
     </table>
   </div>
 
+  <!-- LÓGICA DO BOTÃO -->
+  <script>
+    // Obtém o botão do perfil
+    const profileButton = document.getElementById('user-menu-button');
+
+    // Obtém o elemento de dropdown do perfil
+    const profileDropdown = document.getElementById('profile-dropdown');
+
+    // Define uma variável de estado para controlar se o menu dropdown está visível ou oculto
+    let isProfileDropdownVisible = false;
+
+    // Adiciona um evento de clique ao botão do perfil
+    profileButton.addEventListener('click', function(event) {
+      // Impede que o evento de clique se propague para o documento
+      event.stopPropagation();
+
+      // Alterna o estado da variável de estado do menu dropdown
+      isProfileDropdownVisible = !isProfileDropdownVisible;
+
+      // Mostra ou oculta o elemento de dropdown do perfil com base no estado da variável de estado
+      if (isProfileDropdownVisible) {
+        profileDropdown.classList.remove('hidden');
+      } else {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('click', function(event) {
+      // Oculta o elemento de dropdown do perfil se o usuário clicar fora do menu
+      if (!event.target.closest('#profile-dropdown') && !event.target.closest('#user-menu-button')) {
+
+        // Define o estado da variável de estado do menu dropdown como oculto
+        isProfileDropdownVisible = false;
+
+        // Oculta o elemento de dropdown do perfil
+        profileDropdown.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
 
 </html>

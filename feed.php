@@ -1,3 +1,48 @@
+<!-- LÓGIC BACK END -->
+<?php
+include './server/config.php';
+
+session_start();
+
+if (!isset($_SESSION['id_usuario'])) {
+  header('Location: login.php');
+  exit();
+}
+
+//LÓGICA DA PAGINAÇÃO!!!!!!!!!
+$results_per_page = 10;
+
+// Consulta SQL para obter o número total de resultados
+$sql = "SELECT COUNT(*) AS total FROM tb_post;";
+$result = pg_query($conn, $sql);
+$row = pg_fetch_assoc($result);
+$total_results = $row['total'];
+
+// Calcula o número total de páginas
+$total_pages = ceil($total_results / $results_per_page);
+
+// Obtém o número da página atual a partir do parâmetro GET
+$current_page = isset($_GET['page']) ? $_GET['page'] : 1;
+//FIM DA LÓGICA DE PAGINAÇÃO!!!!!!!!!
+
+
+// Consulta SQL para obter os posts da página atual
+$offset = ($current_page - 1) * $results_per_page;
+$sql = "SELECT tb_post.*, tb_categoria.nm_categoria FROM tb_post
+        INNER JOIN tb_categoria ON tb_post.id_categoria = tb_categoria.id_categoria
+        ORDER BY created_at DESC
+        LIMIT $results_per_page OFFSET $offset;";
+$result = pg_query($conn, $sql);
+
+
+?>
+
+
+
+
+
+
+<!-- FRONT END -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -60,16 +105,30 @@
             <!-- Profile dropdown -->
             <div class="relative ml-3">
               <div>
-                <button type="button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                <button type="button" id="user-menu-button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                   <span class="absolute -inset-1.5"></span>
                   <span class="sr-only">Open user menu</span>
                   <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
                 </button>
               </div>
+              <!--dropdown menu-->
+              <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                <!-- Active: "bg-gray-100", Not Active: "" -->
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Your Profile</a>
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Settings</a>
+                <form action="./logout.php" method="POST">
+                  <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Sign out</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
     </div>
 
     <!-- Mobile menu, show/hide based on menu state. -->
@@ -101,41 +160,33 @@
     <!-- <h1>SECTION DOS POSTS</h1> -->
     <section class="col-span-3 py-16 px-32 font-itim" style="border: 2px red solid;">
 
-      <div class="bordaRosa content rounded-2xl	bg-pink-200 py-12 px-20" style="border: 2px blue solid;">
-        <div class="content rounded-2xl border-4">
+      <?php while ($row = pg_fetch_assoc($result)) : ?>
+        <div class="content rounded-2xl	bg-pink-200 py-12 px-20" style="border: 2px blue solid;">
+          <div class="content rounded-2xl border-4">
 
-          <img src="./client/images/feed/post1.png">
-          <div class="dataEcategoria flex justify-between">
-            <p>data</p>
-            <p>categorias</p>
-          </div>
-          <article class="article text-justify">
-            <br>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-              pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-              culpa qui officia deserunt mollit anim id est laborum.
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              sed do eiusmod tempor incididunt ut labore et dolore magna
-              aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-              ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-              cupidatat non proident, sunt in culpa qui officia deserunt mollit
-              anim id est laborum...
-            </p>
-          </article>
-          <div class="botaoDoPost text-center p-8">
-            <button type="button" class="relative inline-flex items-center rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 mx-auto">
-              Ver post
-            </button>
-          </div>
+            <div class="justify-content-center text-center">
+              <img src="<?php echo $row['imagem'] ?>" class="mx-auto" width="100%">
+            </div>
 
+            <div class="dataEcategoria flex justify-between">
+              <p><?php echo $row['updated_at'] ?></p>
+              <p><?php echo $row['nm_categoria'] ?></p>
+            </div>
+            <article class="article text-justify">
+              <br>
+              <p>
+                <?php echo $row['sinopse'] ?>
+              </p>
+            </article>
+            <div class="botaoDoPost text-center p-8">
+              <button type="button" class="relative inline-flex items-center rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 mx-auto">
+                Ver post
+              </button>
+            </div>
+
+          </div>
         </div>
+      <?php endwhile; ?>
     </section>
 
     <!-- <h1>Navegação LATERAL</h1> -->
@@ -192,6 +243,73 @@
 
   </div>
 
+  <!-- PAGINAÇÃO -->
+  <?php
+  // Define o número de resultados por página
+  $results_per_page = 3;
+
+  // Consulta SQL para obter o número total de resultados
+  $sql = "SELECT COUNT(*) AS total FROM tb_post;";
+  $result = pg_query($conn, $sql);
+  $row = pg_fetch_assoc($result);
+  $total_results = $row['total'];
+
+  // Calcula o número total de páginas
+  $total_pages = ceil($total_results / $results_per_page);
+
+  // Obtém o número da página atual a partir do parâmetro GET
+  $current_page = isset($_GET['page']) ? $_GET['page'] : 1;
+
+  // Exibe os links de página
+  echo '<nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">';
+  echo '<div class="-mt-px flex w-0 flex-1">';
+  if ($current_page > 1) {
+    echo '<a href="./feed.php?page=' . ($current_page - 1) . '" class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+        <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+        </svg>
+        Previous
+      </a>';
+  } else {
+    echo '<span class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500">
+        <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+        </svg>
+        Previous
+      </span>';
+  }
+  echo '</div>';
+  echo '<div class="hidden md:-mt-px md:flex">';
+  for ($i = 1; $i <= $total_pages; $i++) {
+    if ($i == $current_page) {
+      echo '<a href="./feed.php?page=' . $i . '" class="inline-flex items-center border-t-2 border-indigo-500 px-4 pt-4 text-sm font-medium text-indigo-600" aria-current="page">
+          ' . $i . '</a>';
+    } else {
+      echo '<a href="./feed.php?page=' . $i . '" class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">' . $i . '</a>';
+    }
+  }
+  echo '</div>';
+  echo '<div class="-mt-px flex w-0 flex-1 justify-end">';
+  if ($current_page < $total_pages) {
+    echo '<a href="./feed.php?page=' . ($current_page + 1) . '" class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+      Next
+      <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+      </svg>
+    </a>';
+  } else {
+    echo '<span class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500">
+      Next
+      <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+      </svg>
+    </span>';
+  }
+  echo '</div>';
+  echo '</nav>';
+  ?>
+
+
 
   <!-- RODAPÉ -->
   <footer class="bg-gradient-to-r from-pink-200 to-pink-300">
@@ -234,6 +352,45 @@
     </div>
   </footer>
 
+  <!-- LÓGICA DO BOTÃO -->
+  <script>
+    // Obtém o botão do perfil
+    const profileButton = document.getElementById('user-menu-button');
+
+    // Obtém o elemento de dropdown do perfil
+    const profileDropdown = document.getElementById('profile-dropdown');
+
+    // Define uma variável de estado para controlar se o menu dropdown está visível ou oculto
+    let isProfileDropdownVisible = false;
+
+    // Adiciona um evento de clique ao botão do perfil
+    profileButton.addEventListener('click', function(event) {
+      // Impede que o evento de clique se propague para o documento
+      event.stopPropagation();
+
+      // Alterna o estado da variável de estado do menu dropdown
+      isProfileDropdownVisible = !isProfileDropdownVisible;
+
+      // Mostra ou oculta o elemento de dropdown do perfil com base no estado da variável de estado
+      if (isProfileDropdownVisible) {
+        profileDropdown.classList.remove('hidden');
+      } else {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('click', function(event) {
+      // Oculta o elemento de dropdown do perfil se o usuário clicar fora do menu
+      if (!event.target.closest('#profile-dropdown') && !event.target.closest('#user-menu-button')) {
+
+        // Define o estado da variável de estado do menu dropdown como oculto
+        isProfileDropdownVisible = false;
+
+        // Oculta o elemento de dropdown do perfil
+        profileDropdown.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
 
 

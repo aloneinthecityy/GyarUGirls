@@ -9,8 +9,8 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         email VARCHAR(50) NOT NULL UNIQUE,
         senha VARCHAR(50) NOT NULL,
         is_admin BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at DATE DEFAULT CURRENT_DATE,
+        updated_at DATE DEFAULT CURRENT_DATE
       );
 
       CREATE TABLE IF NOT EXISTS tb_categoria (
