@@ -34,7 +34,9 @@ $sql = "SELECT tb_post.*, tb_categoria.nm_categoria FROM tb_post
         LIMIT $results_per_page OFFSET $offset;";
 $result = pg_query($conn, $sql);
 
-$sqlUsuario = "SELECT * FROM tb_usuario";
+$id_usuario = $_SESSION['id_usuario'];
+
+$sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
 $resultUsuario = pg_query($conn, $sqlUsuario);
 
 ?>
@@ -122,7 +124,7 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
       <div class="border-t border-pink-600 pb-3 pt-4">
         <div class="flex items-center px-5 sm:px-6">
           <div class="flex-shrink-0">
-            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+            <img class="h-8 w-8 rounded-full" src="<?php echo $row['imagem_perfil'] ?>" width="20%">
           </div>
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>

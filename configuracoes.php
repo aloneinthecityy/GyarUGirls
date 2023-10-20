@@ -13,10 +13,12 @@ $message = '';
 $messageErro = '';
 
 // Recupera os dados do banco de dados
-$sql = "SELECT * FROM tb_usuario";
+$id_usuario = $_SESSION['id_usuario'];
+$sql = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
 $result = pg_query($conn, $sql);
 
-$sqlUsuario = "SELECT * FROM tb_usuario";
+$id_usuario = $_SESSION['id_usuario'];
+$sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
 $resultUsuario = pg_query($conn, $sqlUsuario);
 
 // Fecha a conexão com o banco de dados
@@ -103,7 +105,7 @@ pg_close($conn);
       <div class="border-t border-pink-600 pb-3 pt-4">
         <div class="flex items-center px-5 sm:px-6">
           <div class="flex-shrink-0">
-            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+            <img class="h-8 w-8 rounded-full" src="<?php echo $row['imagem_perfil'] ?>" width="20%">
           </div>
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
@@ -165,7 +167,7 @@ pg_close($conn);
     <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
       <p>E-mail: <?php echo $row['email'] ?></p>
 
-      <a href="./editarEmail.php">
+      <a href="./editarEmailUsuario.php">
         <button class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Editar</button>
       </a>
     </div>
@@ -174,7 +176,7 @@ pg_close($conn);
     <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
       <p>Senha: *********** </p>
 
-      <a href="./editarSenha.php">
+      <a href="./editarSenhaUsuario.php">
         <button class="inline-flex items-center bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
           Editar
         </button>
@@ -184,7 +186,7 @@ pg_close($conn);
     <br>
 
     <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
-      <p>Foto de perfil: <img src="<?php echo $row['imagem_perfil'] ?>" width="20%"> </p>
+      <p>Foto de perfil: <img src="<?php echo $row['imagem_perfil'] ?>" style="width: 20%;"> </p>
 
       <a href="./editarFotoPerfil.php">
         <button class=" bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

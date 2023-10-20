@@ -12,28 +12,70 @@ if (!isset($_SESSION['id_usuario'])) {
 $message = '';
 $messageErro = '';
 
+// Função para "higienizar" a entrada de dados
 function sanitize($input)
 {
+  global $conn, $messageErro, $message;
   $input = trim($input);
   $input = strip_tags($input);
   $input = htmlspecialchars($input);
+  $input = pg_escape_string($conn, $input);
   return $input;
 }
 
+// Função para enviar a imagem para o servidor
+function uploadImagem($imagem)
+{
+  global $message, $messageErro;
+  if ($imagem['error'] != 0) {
+    $messageErro = 'Erro ao fazer upload da imagem';
+    exit;
+  }
+
+  if ($imagem['size'] > 2097152) {
+    $messageErro = 'Tamanho de imagem excedido. Tamanho máximo de 2MB!';
+    exit;
+  }
+
+  $pasta = './client/images/perfil_usuario/';
+  $nomeDoArquivo = $imagem['name'];
+  $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
+  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
+
+  if ($extensao != 'jpg' && $extensao != 'png' && $extensao != 'gif' && $extensao != 'jpeg') {
+    $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
+    exit;
+  }
+
+  $patch = $pasta . $novoNome . '.' . $extensao;
+  $verificaEnvioDoArquivo = move_uploaded_file($imagem['tmp_name'], $patch);
+  if ($verificaEnvioDoArquivo == false) {
+    $messageErro = 'Erro ao fazer upload da imagem';
+    exit;
+  } else {
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./client/images/perfil_usuario/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    return $patch;
+  }
+}
+
 if (isset($_POST['submit'])) {
-  if (empty($_POST['nm_usuario'])) {
+  // Verifica se os campos obrigatórios foram preenchidos
+  if (empty($_FILES['imagem_perfil'])) {
     $messageErro = 'Por favor, preencha o campo!';
   } else {
-    $nm_usuario = sanitize($_POST['nm_usuario']);
+    // Consistência de imagem
+    if (isset($_FILES['imagem_perfil'])) {
+      $imagem = $_FILES['imagem_perfil'];
+      $imagemPatch = uploadImagem($imagem);
+    }
 
-    $sql = "UPDATE tb_usuario SET nm_usuario = $1 WHERE id_usuario = $2";
-    $result = pg_query_params($conn, $sql, array($nm_usuario, $_SESSION['id_usuario']));
+    $sql = "UPDATE tb_usuario SET imagem_perfil = $1 WHERE id_usuario = $2";
+    $result = pg_query_params($conn, $sql, array($imagemPatch, $_SESSION['id_usuario']));
 
     if ($result) {
-      header('Location: ./configuracoes.php');
-      exit();
+      $message = 'Imagem atualizada com sucesso';
     } else {
-      $messageErro = "Não foi possível editar seu nome de usuário, tente novamente mais tarde!";
+      $messageErro = 'Não foi possível atualizar a imagem, tente novamente mais tarde!';
     }
   }
 }
@@ -57,7 +99,7 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alterar nome de usuário | GyaruGirls</title>
+  <title>Alterar email | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
   <?php include_once './client/css/index.php'; ?>
@@ -176,19 +218,18 @@ pg_close($conn);
 
   <div class="flex justify-center items-center h-screen">
     <div class="bg-pink-100 p-8 rounded-lg">
-      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar nome de usuário:</h1>
+      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar foto de perfil:</h1>
 
-      <form method="POST">
+      <form method="POST" enctype="multipart/form-data">
         <div class="flex flex-col justify-center items-center">
-          <label for="usuario" class="text-pink-500 font-itim">Novo nome:</label>
-          <input type="text" name="nm_usuario" id="nm_usuario" class="block w-full text-center rounded-md bg-white placeholder-gray-300" placeholder=" @123dasilva">
-        </div>
-        <br>
-        <div class="text-center">
-          <button name="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded">
-            Alterar
-          </button>
-        </div>
+          <label for="imagem_perfil" class="text-pink-500 font-itim">Novo foto de perfil:</label>
+          <input type="file" name="imagem_perfil" id="imagem_perfil" class="block w-full text-center rounded-md bg-white">
+          <br>
+          <div class="text-center">
+            <button name="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded">
+              Alterar
+            </button>
+          </div>
       </form>
     </div>
   </div>
