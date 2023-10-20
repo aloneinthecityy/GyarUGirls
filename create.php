@@ -3,10 +3,8 @@
 include './server/config.php';
 
 session_start();
-
-if (!isset($_SESSION['is_admin']) == 't') {
-  header('Location: login.php');
-  $messageErro = 'Você não tem permissão para acessar essa página';
+if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 't') {
+  header('Location: ./404.php');
   exit();
 }
 
@@ -127,31 +125,13 @@ pg_close($conn);
         <div class="flex">
           <div class="-ml-2 mr-2 flex items-center md:hidden">
             <!-- Mobile menu button -->
-            <button type="button" class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
-              <span class="absolute -inset-0.5"></span>
-              <span class="sr-only">Open main menu</span>
-              <!--
-              Icon when menu is closed.
 
-              Menu open: "hidden", Menu closed: "block"
-            -->
-              <!--
-              Icon when menu is open.
-
-              Menu open: "block", Menu closed: "hidden"
-            -->
-              <!-- <img src="./client/images/gatito.png"> -->
-
-            </button>
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" style="width: 40%;">
-          </div>
-          <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4">
-            <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Team</a>
-            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Projects</a>
-            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Calendar</a>
+            <img src="./client/images/gatito.png" class="h-10">
+            <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
+              <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
+            </div>
           </div>
         </div>
         <div class="flex items-center">
@@ -160,7 +140,7 @@ pg_close($conn);
               <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
               </svg>
-              New Job
+              Postar
             </button>
           </div>
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
@@ -177,10 +157,9 @@ pg_close($conn);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Your Profile</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Settings</a>
+                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <form action="./logout.php" method="POST">
-                  <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Sign out</button>
+                  <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
                 </form>
               </div>
             </div>
@@ -196,20 +175,17 @@ pg_close($conn);
 
     <!-- Mobile menu, show/hide based on menu state. -->
     <div class="md:hidden" id="mobile-menu">
-      <div class="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-        <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Team</a>
-        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Projects</a>
-        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Calendar</a>
-      </div>
       <div class="border-t border-pink-600 pb-3 pt-4">
         <div class="flex items-center px-5 sm:px-6">
           <div class="flex-shrink-0">
             <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
           </div>
           <div class="ml-3">
-            <div class="text-base font-medium text-white">Tom Cook</div>
-            <div class="text-sm font-medium text-pink-600">tom@example.com</div>
+            <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
+            <div class="text-sm font-medium text-pink-600"><a href="./perfil.php">Meu perfil</a></div>
+            <form action="./logout.php" method="POST">
+              <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Logout</button>
+            </form>
           </div>
         </div>
 
@@ -221,26 +197,34 @@ pg_close($conn);
     <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
 
     <!-- Mensagem de erro - BACK END -->
-    <?php if (!empty($messageErro)) : ?>
-      <div class="rounded-md bg-red-50 p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
-            <div class="mt-2 text-sm text-red-700">
-              <!-- <ul role="list" class="list-disc space-y-1 pl-5">
-                <li>Your password must be at least 8 characters</li>
-                <li>Your password must include at least one pro wrestling finishing move</li>
-              </ul> -->
+    <?php if (isset($_POST['submit'])) : ?>
+      <?php if (!empty($messageErro)) : ?>
+        <div class="rounded-md bg-red-50 p-4 alerta">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
+              <div class="mt-2 text-sm text-red-700">
+              </div>
+            </div>
+            <div class="ml-auto pl-3">
+              <div class="-mx-1.5 -my-1.5">
+                <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
+                  <span class="sr-only">Fechar</span>
+                  <!-- Ícone de X para fechar o alerta -->
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
+      <?php endif; ?>
     <?php endif; ?>
 
     <!-- Mensagem de sucesso - BACK END -->
@@ -257,10 +241,11 @@ pg_close($conn);
           </div>
           <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
-              <button type="button" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50">
-                <span class="sr-only">Dismiss</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
+                <span class="sr-only">Fechar</span>
+                <!-- Ícone de X para fechar o alerta -->
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
                 </svg>
               </button>
             </div>
@@ -269,33 +254,6 @@ pg_close($conn);
       </div>
     <?php endif; ?>
 
-    <br>
-    <!-- Mensagem de CONEXÃO DO BANCO -->
-    <?php if (!empty($alertBanco)) : ?>
-      <div class="rounded-md bg-green-50 p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <p> <?php echo $alertBanco; ?> </p>
-          </div>
-          <div class="ml-auto pl-3">
-            <div class="-mx-1.5 -my-1.5">
-              <button type="button" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50">
-                <span class="sr-only">Dismiss</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    <?php endif; ?>
-    <br>
 
     <!-- Formulário de criação -->
     <form action="./create.php" method="post" enctype="multipart/form-data" class="mb-8">

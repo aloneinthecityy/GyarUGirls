@@ -64,31 +64,13 @@ $result = pg_query($conn, $sql);
         <div class="flex">
           <div class="-ml-2 mr-2 flex items-center md:hidden">
             <!-- Mobile menu button -->
-            <button type="button" class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
-              <span class="absolute -inset-0.5"></span>
-              <span class="sr-only">Open main menu</span>
-              <!--
-              Icon when menu is closed.
 
-              Menu open: "hidden", Menu closed: "block"
-            -->
-              <!--
-              Icon when menu is open.
-
-              Menu open: "block", Menu closed: "hidden"
-            -->
-              <!-- <img src="./client/images/gatito.png"> -->
-
-            </button>
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" style="width: 40%;">
-          </div>
-          <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4">
-            <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Team</a>
-            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Projects</a>
-            <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Calendar</a>
+            <img src="./client/images/gatito.png" class="h-10">
+            <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
+              <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
+            </div>
           </div>
         </div>
         <div class="flex items-center">
@@ -97,7 +79,7 @@ $result = pg_query($conn, $sql);
               <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
               </svg>
-              New Job
+              Postar
             </button>
           </div>
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
@@ -114,10 +96,9 @@ $result = pg_query($conn, $sql);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Your Profile</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Settings</a>
+                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <form action="./logout.php" method="POST">
-                  <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Sign out</button>
+                  <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
                 </form>
               </div>
             </div>
@@ -133,20 +114,17 @@ $result = pg_query($conn, $sql);
 
     <!-- Mobile menu, show/hide based on menu state. -->
     <div class="md:hidden" id="mobile-menu">
-      <div class="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-        <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Team</a>
-        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Projects</a>
-        <a href="#" class="text-pink-600 hover:bg-pink-400 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Calendar</a>
-      </div>
       <div class="border-t border-pink-600 pb-3 pt-4">
         <div class="flex items-center px-5 sm:px-6">
           <div class="flex-shrink-0">
             <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
           </div>
           <div class="ml-3">
-            <div class="text-base font-medium text-white">Tom Cook</div>
-            <div class="text-sm font-medium text-pink-600">tom@example.com</div>
+            <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
+            <div class="text-sm font-medium text-pink-600"><a href="./perfil.php">Meu perfil</a></div>
+            <form action="./logout.php" method="POST">
+              <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Logout</button>
+            </form>
           </div>
         </div>
 
@@ -154,18 +132,19 @@ $result = pg_query($conn, $sql);
     </div>
   </header>
 
+
   <div class="wrapper grid grid-cols-4 gap-5 justify-center	justify-items-center px-3.5 py-3.5">
 
 
     <!-- <h1>SECTION DOS POSTS</h1> -->
-    <section class="col-span-3 py-16 px-32 font-itim" style="border: 2px red solid;">
+    <section class="col-span-3 py-16 px-32 font-itim">
 
       <?php while ($row = pg_fetch_assoc($result)) : ?>
-        <div class="content rounded-2xl	bg-pink-200 py-12 px-20" style="border: 2px blue solid;">
-          <div class="content rounded-2xl border-4">
+        <div class="content rounded-2xl	bg-pink-200 py-12 px-20">
+          <div class="content rounded-2xl">
 
             <div class="justify-content-center text-center">
-              <img src="<?php echo $row['imagem'] ?>" class="mx-auto" width="100%">
+              <img src="<?php echo $row['imagem'] ?>" class="mx-auto" width="100%" style="border-radius: 3%;">
             </div>
 
             <div class="dataEcategoria flex justify-between">
@@ -190,7 +169,7 @@ $result = pg_query($conn, $sql);
     </section>
 
     <!-- <h1>Navegação LATERAL</h1> -->
-    <nav class="navbar grid grid-rows-2 gap-20 px-8 py-16" style="border: 2px red solid;">
+    <nav class="navbar grid grid-rows-2 gap-20 px-8 py-16">
       <section class="blog border rounded-2xl font-itim" style="background-image: url(./client/images/feed/fundoAutora.jpg)">
         <div class="autora p-8">
           <img src="./client/images/feed/autora.png">
@@ -262,7 +241,7 @@ $result = pg_query($conn, $sql);
 
   // Exibe os links de página
   echo '<nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">';
-  echo '<div class="-mt-px flex w-0 flex-1">';
+  echo '<div class="-mt-px mx-12 flex w-0 flex-1">';
   if ($current_page > 1) {
     echo '<a href="./feed.php?page=' . ($current_page - 1) . '" class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
         <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -289,7 +268,7 @@ $result = pg_query($conn, $sql);
     }
   }
   echo '</div>';
-  echo '<div class="-mt-px flex w-0 flex-1 justify-end">';
+  echo '<div class="-mt-px mx-12 flex w-0 flex-1 justify-end">';
   if ($current_page < $total_pages) {
     echo '<a href="./feed.php?page=' . ($current_page + 1) . '" class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
       Next
