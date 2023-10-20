@@ -39,11 +39,11 @@ if (isset($_POST['submit'])) {
       $messageErro = 'O usuário já existe';
     } else {
       // Insere os dados no banco de dados
-      $sql = "INSERT INTO tb_usuario (nm_usuario, email, senha, is_admin, imagem_perfil, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)";
+      $sql = "INSERT INTO tb_usuario (nm_usuario, email, senha, is_admin) VALUES ($1, $2, $3, $4)";
       $result = pg_query_params(
         $conn,
         $sql,
-        array($nm_usuario, $email, $senha, 0, null, date('Y-m-d H:i:s'), date('Y-m-d H:i:s'))
+        array($nm_usuario, $email, $senha, 0)
       );
 
       // Verifica se os dados foram inseridos com sucesso

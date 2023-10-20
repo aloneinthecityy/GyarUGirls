@@ -34,6 +34,8 @@ $sql = "SELECT tb_post.*, tb_categoria.nm_categoria FROM tb_post
         LIMIT $results_per_page OFFSET $offset;";
 $result = pg_query($conn, $sql);
 
+$sqlUsuario = "SELECT * FROM tb_usuario";
+$resultUsuario = pg_query($conn, $sqlUsuario);
 
 ?>
 
@@ -85,23 +87,26 @@ $result = pg_query($conn, $sql);
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
 
             <!-- Profile dropdown -->
+            <?php $row = pg_fetch_assoc($resultUsuario) ?>
             <div class="relative ml-3">
               <div>
                 <button type="button" id="user-menu-button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                   <span class="absolute -inset-1.5"></span>
                   <span class="sr-only">Open user menu</span>
-                  <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+                  <img class="h-8 w-8 rounded-full" src="<?php echo $row['imagem_perfil'] ?>" width="20%">
                 </button>
               </div>
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
                 <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
                 </form>
               </div>
             </div>
+            <php? ?>
           </div>
         </div>
       </div>
@@ -122,6 +127,7 @@ $result = pg_query($conn, $sql);
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
             <div class="text-sm font-medium text-pink-600"><a href="./perfil.php">Meu perfil</a></div>
+            <div class="text-sm font-medium text-pink-600"><a href="./configuracoes.php">Configurações</a></div>
             <form action="./logout.php" method="POST">
               <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Logout</button>
             </form>
@@ -131,6 +137,8 @@ $result = pg_query($conn, $sql);
       </div>
     </div>
   </header>
+
+
 
 
   <div class="wrapper grid grid-cols-4 gap-5 justify-center	justify-items-center px-3.5 py-3.5">

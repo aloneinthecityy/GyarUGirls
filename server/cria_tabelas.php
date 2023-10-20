@@ -9,7 +9,7 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         email VARCHAR(50) NOT NULL UNIQUE,
         senha VARCHAR(50) NOT NULL,
         is_admin BOOLEAN DEFAULT FALSE,
-        imagem_perfil VARCHAR(100),
+        imagem_perfil VARCHAR(100) DEFAULT './client/images/perfil_usuario/default.jpg',
         created_at DATE DEFAULT CURRENT_DATE,
         updated_at DATE DEFAULT CURRENT_DATE
       );
