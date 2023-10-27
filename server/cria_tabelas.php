@@ -10,6 +10,8 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         senha VARCHAR(50) NOT NULL,
         is_admin BOOLEAN DEFAULT FALSE,
         imagem_perfil VARCHAR(100) DEFAULT './client/images/perfil_usuario/default.jpg',
+        cargo VARCHAR(50),
+        bio TEXT,
         created_at DATE DEFAULT CURRENT_DATE,
         updated_at DATE DEFAULT CURRENT_DATE
       );
@@ -38,6 +40,15 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         comentario TEXT NOT NULL,
         created_at DATE DEFAULT CURRENT_DATE,
         FOREIGN KEY (id_post) REFERENCES tb_post (id_post),
+        FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
+      );
+
+      CREATE TABLE IF NOT EXISTS tb_post_usuario (
+        id_post_usuario SERIAL PRIMARY KEY,
+        id_usuario INTEGER NOT NULL,
+        imagem VARCHAR(100),
+        conteudo TEXT NOT NULL,
+        created_at DATE DEFAULT CURRENT_DATE,
         FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
       );
 

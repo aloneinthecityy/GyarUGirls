@@ -21,19 +21,19 @@ function sanitize($input)
 }
 
 if (isset($_POST['submit'])) {
-  if (empty($_POST['nm_usuario'])) {
+  if (empty($_POST['cargo'])) {
     $messageErro = 'Por favor, preencha o campo!';
   } else {
-    $nm_usuario = sanitize($_POST['nm_usuario']);
+    $cargo = sanitize($_POST['cargo']);
 
-    $sql = "UPDATE tb_usuario SET nm_usuario = $1 WHERE id_usuario = $2";
-    $result = pg_query_params($conn, $sql, array($nm_usuario, $_SESSION['id_usuario']));
+    $sql = "UPDATE tb_usuario SET cargo = $1 WHERE id_usuario = $2";
+    $result = pg_query_params($conn, $sql, array($cargo, $_SESSION['id_usuario']));
 
     if ($result) {
       header('Location: ./configuracoes.php');
       exit();
     } else {
-      $messageErro = "Não foi possível editar seu nome de usuário, tente novamente mais tarde!";
+      $messageErro = "Não foi possível editar seu cargo, tente novamente mais tarde!";
     }
   }
 }
@@ -57,7 +57,7 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alterar nome de usuário | GyaruGirls</title>
+  <title>Alterar cargo | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
   <?php include_once './client/css/index.php'; ?>
@@ -145,7 +145,6 @@ pg_close($conn);
     </div>
   </header>
 
-
   <!-- Mensagem de erro - BACK END -->
   <?php if (isset($_POST['submit'])) : ?>
     <?php if (!empty($messageErro)) : ?>
@@ -179,12 +178,12 @@ pg_close($conn);
 
   <div class="flex justify-center items-center h-screen">
     <div class="bg-pink-100 p-8 rounded-lg">
-      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar nome de usuário:</h1>
+      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar cargo:</h1>
 
       <form method="POST">
         <div class="flex flex-col justify-center items-center">
-          <label for="usuario" class="text-pink-500 font-itim">Novo nome:</label>
-          <input type="text" name="nm_usuario" id="nm_usuario" class="block w-full text-center rounded-md bg-white placeholder-gray-300" placeholder=" @123dasilva">
+          <label for="cargo" class="text-pink-500 font-itim">Novo cargo:</label>
+          <input type="text" name="cargo" id="cargo" class="block w-full text-center rounded-md bg-white placeholder-gray-300" placeholder="Filósofa">
         </div>
         <br>
         <div class="text-center">
