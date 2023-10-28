@@ -1,5 +1,7 @@
 # GyarUGirls
-Uma nova rede social, inspirada nos blogs dos anos 2000, para as garotas que têm uma perspectiva diferenciada ;)
+Uma rede social inspirada nos blogs dos anos 2000, para as garotas que têm uma perspectiva diferenciada ;) 
+
+****Instruções de execução após as imagens!!!
 
 <p align="center">
   <img src="./client/images/readme/cadastro.png" width="50%">
@@ -19,4 +21,29 @@ Uma nova rede social, inspirada nos blogs dos anos 2000, para as garotas que tê
 
 <p align="center">
   <img src="./client/images/readme/perfil do usuário - posts.png" width="50%">
+</p>
+
+## Pré-requisitos
+- Certifique-se de que você tenha o PHP instalado em seu sistema. Você pode verificar a instalação do PHP digitando o seguinte comando no seu terminal:
+php -v
+
+- Tenha um servidor web, como o Apache, configurado e em execução.
+
+## Passo 1: Configurar o Servidor Web
+Certifique-se de que seu servidor web (por exemplo, Apache ou Nginx) esteja configurado e em execução em seu ambiente de desenvolvimento.
+
+## Passo 2: Colocar os Arquivos do Projeto
+Clone ou baixe um .zip do projeto "GyarUGirls" em um diretório acessível pelo servidor web. Por exemplo, se você estiver usando o Apache, coloque o projeto no diretório "htdocs", dentro do diretório de instalação do Apache.
+
+## Passo 3: Acessar a Página Inicial
+Abra um navegador da web e digite "localhost" na barra de endereço. Isso deve exibir a página padrão do servidor web.
+
+## Passo 4: Visualizar o Projeto
+Navegue até o diretório de "GyarUGirls", e digite "localhost/GyarUGirls" na barra de endereço do navegador.
+
+Se tudo estiver configurado corretamente, você deverá ver a página inicial do projeto no navegador.
+
+## Um beijo e um queijo, e até a próxima! :heart:
+<p align="center">
+  <img src="https://i.pinimg.com/originals/9b/d2/e9/9bd2e95b2bf7992bf621e67963fa657b.gif" width="50%">
 </p>
