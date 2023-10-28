@@ -1,81 +1,79 @@
-<!-- LÓGICA PHP -->
+<!-- LÓGICA EM PHP -->
 <?php
-session_start();
 
+include '../server/config.php';
+
+$message = '';
 $messageErro = '';
 
+// Função para "higienizar" a entrada de dados
 function sanitize($input)
 {
+  global $conn;
   $input = trim($input);
   $input = strip_tags($input);
   $input = htmlspecialchars($input);
+  $input = pg_escape_string($conn, $input);
   return $input;
 }
 
+// Verifica se o formulário foi enviado
 if (isset($_POST['submit'])) {
-  if (empty($_POST['usuario']) || empty($_POST['senha'])) {
+  // Verifica se os campos obrigatórios foram preenchidos
+  if (empty($_POST['usuario']) || empty($_POST['email']) || empty($_POST['senha'])) {
     $messageErro = 'Por favor, preencha todos os campos obrigatórios';
   } else {
-    include './server/config.php';
-
+    // Consistência de dados
     $nm_usuario = sanitize($_POST['usuario']);
+    $email = sanitize($_POST['email']);
     $senha = sanitize($_POST['senha']);
-    $senhaHash = md5($senha);
 
-    $sql = "SELECT id_usuario, nm_usuario, email, is_admin FROM tb_usuario WHERE nm_usuario = $1 AND senha = $2";
-    $result = pg_query_params($conn, $sql, array($nm_usuario, $senhaHash));
+    $senha = md5($senha);
 
-    if ($result) {
-      $usuario = pg_fetch_assoc($result);
+    // Verifica se o usuário já existe no banco de dados
+    $sql = "SELECT * FROM tb_usuario WHERE nm_usuario = $1 OR email = $2";
+    $result = pg_query_params($conn, $sql, array($nm_usuario, $email));
 
-      if ($usuario) {
-        $_SESSION['id_usuario'] = $usuario['id_usuario'];
-        $_SESSION['is_admin'] = $usuario['is_admin'];
-        $_SESSION['nm_usuario'] = $usuario['nm_usuario'];
-        $_SESSION['email'] = $usuario['email'];
-
-
-        if ($_SESSION['is_admin'] == 't') {
-          header('Location: ./create.php');
-          exit();
-        } else {
-          header('Location: ./feed.php');
-          exit();
-        }
-      } else {
-        $messageErro = 'Usuário ou senha incorretos';
-      }
+    if (pg_num_rows($result) > 0) {
+      // O usuário já existe
+      $messageErro = 'O usuário já existe';
     } else {
-      $messageErro = 'Erro na consulta ao banco de dados';
-    }
+      // Insere os dados no banco de dados
+      $sql = "INSERT INTO tb_usuario (nm_usuario, email, senha, is_admin) VALUES ($1, $2, $3, $4)";
+      $result = pg_query_params(
+        $conn,
+        $sql,
+        array($nm_usuario, $email, $senha, 0)
+      );
 
-    // Verificação adicional para verificar se o usuário não existe
-    $sql = "SELECT COUNT(*) FROM tb_usuario WHERE nm_usuario = $1";
-    $result = pg_query_params($conn, $sql, array($nm_usuario));
-    $row = pg_fetch_row($result);
-
-    if ($row[0] == 0) {
-      $messageErro = 'Usuário não encontrado';
+      // Verifica se os dados foram inseridos com sucesso
+      if ($result) {
+        header('Location: ./login.php');
+        exit;
+      } else {
+        $messageErro = 'Erro ao cadastrar o usuário';
+      }
     }
   }
 }
+// Fecha a conexão com o banco de dados
+pg_close($conn);
 ?>
 
-<!-- FRONT END -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./client/css/fonts.css">
-  <title>GyarUGirls | Login</title>
+  <link rel="stylesheet" href="./css/fonts.css">
+  <title>GyarUGirls | Cadastro</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './client/css/index.php'; ?>
+  <?php include_once './css/index.php'; ?>
 </head>
 
-<body class="bg-repeat overflow-hidden" style="background-image: url(./client/images/backgroundlogin.jpg)">
+<body class="bg-repeat overflow-hidden" style="background-image: url(./images/fundocadastro.jpg)">
   <!-- Mensagem de erro - BACK END -->
   <?php if (isset($_POST['submit'])) : ?>
     <?php if (!empty($messageErro)) : ?>
@@ -108,25 +106,30 @@ if (isset($_POST['submit'])) {
   <?php endif; ?>
 
   <div class="relative flex items-center justify-center h-screen">
-    <img src="./client/images/fundologin.png" style="width: 60%;">
-
+    <img src="./images/coracaocadastro.png" style="width: 60%;">
+    <!-- Formulário de cadastro -->
     <form class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
     text-center 
     flex flex-col items-center" method="POST">
       <pre class="font-itim text-xl text-pink-500">
-       Faça login no cantinho mais fofo do mundo
+        Cadastre-se no blog 
+        mais descolado e @$#%%* da web
       </pre>
       <label for="usuario" class="text-pink-500 font-itim">Nome de usuário:</label>
       <input type="text" name="usuario" id="usuario" class="block w-full rounded-md bg-white placeholder-gray-300" style="width: 80%; height: 12%;" placeholder="@marshmallowsalgado">
 
-      <label for="senha" class="text-pink-500 font-itim">Senha:</label>
+      <label for="email" class="text-pink-500 font-itim">E-mail:</label>
+      <input type="email" name="email" id="email" class="block w-full rounded-md bg-white placeholder-gray-300" style="width: 80%; height: 12%;" placeholder="ciclaninhodasilva@gmail.com">
+
+      <label for="senha" class="text-pink-500 font-itim">Crie uma senha:</label>
       <input type="password" name="senha" id="senha" class="block w-full rounded-md bg-white placeholder-gray-300" style="width: 80%; height: 12%;" placeholder="***********">
 
       <button name="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded">
         Entrar
       </button>
 
-      <a href="./cadastro.php" class="text-pink-500 font-itim">Não tem uma conta? Cadastre-se!</a>
+
+      <a href="./login.php" class="text-pink-500 font-itim">Já tem uma conta? Faça login!</a>
     </form>
   </div>
 

@@ -1,11 +1,10 @@
 <!-- LÓGICA EM PHP -->
 <?php
-include './server/config.php';
+include '../server/config.php';
 
 session_start();
-
-if (!isset($_SESSION['id_usuario'])) {
-  header('Location: login.php');
+if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 't') {
+  header('Location: ./404.php');
   exit();
 }
 
@@ -37,7 +36,7 @@ function uploadImagem($imagem)
     exit;
   }
 
-  $pasta = './client/images/perfil_usuario/';
+  $pasta = './images/upload_post/';
   $nomeDoArquivo = $imagem['name'];
   $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
   $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
@@ -53,38 +52,54 @@ function uploadImagem($imagem)
     $messageErro = 'Erro ao fazer upload da imagem';
     exit;
   } else {
-    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./client/images/perfil_usuario/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
     return $patch;
   }
 }
 
 if (isset($_POST['submit'])) {
   // Verifica se os campos obrigatórios foram preenchidos
-  if (empty($_FILES['imagem_perfil'])) {
-    $messageErro = 'Por favor, preencha o campo!';
+  if (empty($_POST['titulo']) || empty($_POST['sinopse']) || empty($_POST['conteudo']) || empty($_POST['categoria'])) {
+    $messageErro = 'Por favor, preencha todos os campos obrigatórios';
   } else {
+    // Consistência de dados
+    $titulo = sanitize($_POST['titulo']);
+    $sinopse = sanitize($_POST['sinopse']);
+    $conteudo = sanitize($_POST['conteudo']);
+    $id_categoria = sanitize($_POST['categoria']);
+
     // Consistência de imagem
-    if (isset($_FILES['imagem_perfil'])) {
-      $imagem = $_FILES['imagem_perfil'];
+    if (isset($_FILES['imagem'])) {
+      $imagem = $_FILES['imagem'];
       $imagemPatch = uploadImagem($imagem);
     }
 
-    $sql = "UPDATE tb_usuario SET imagem_perfil = $1 WHERE id_usuario = $2";
-    $result = pg_query_params($conn, $sql, array($imagemPatch, $_SESSION['id_usuario']));
-
-    if ($result) {
-      $message = 'Imagem atualizada com sucesso';
-      header('Location: configuracoes.php');
+    // Verifica se a categoria existe na tabela tb_categoria
+    $sql = "SELECT id_categoria FROM tb_categoria WHERE id_categoria = $1";
+    $result = pg_query_params($conn, $sql, array($id_categoria));
+    if (pg_num_rows($result) == 0) {
+      $messageErro = 'Categoria não encontrada';
     } else {
-      $messageErro = 'Não foi possível atualizar a imagem, tente novamente mais tarde!';
+      // Insere os dados na tabela
+      $sql = "INSERT INTO tb_post (id_categoria, titulo, imagem, sinopse, conteudo) VALUES ($1, $2, $3, $4, $5)";
+      $result = pg_query_params($conn, $sql, array($id_categoria, $titulo, $imagemPatch, $sinopse, $conteudo));
+
+      // Verifica se os dados foram inseridos com sucesso
+      if ($result) {
+        $message = 'Dados inseridos com sucesso';
+      } else {
+        $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
+      }
     }
   }
 }
+// Recupera os dados do banco de dados
+$sql = "SELECT * FROM tb_post ORDER BY id_post DESC";
+$result = pg_query($conn, $sql);
 
-$id_usuario = $_SESSION['id_usuario'];
+$sql = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
+$resultUsuario = pg_query($conn, $sql);
 
-$sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
-$resultUsuario = pg_query($conn, $sqlUsuario);
 // Fecha a conexão com o banco de dados
 pg_close($conn);
 ?>
@@ -99,10 +114,10 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alterar email | GyaruGirls</title>
+  <title>Criação | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './client/css/index.php'; ?>
+  <?php include_once './css/index.php'; ?>
 </head>
 
 <body>
@@ -116,7 +131,7 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" class="h-10">
+            <img src="./images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
@@ -187,20 +202,51 @@ pg_close($conn);
     </div>
   </header>
 
-  <!-- Mensagem de erro - BACK END -->
-  <?php if (isset($_POST['submit'])) : ?>
-    <?php if (!empty($messageErro)) : ?>
-      <div class="rounded-md bg-red-50 p-4 alerta">
+  <div class="container mx-auto px-4 mt-6">
+    <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
+
+    <!-- Mensagem de erro - BACK END -->
+    <?php if (isset($_POST['submit'])) : ?>
+      <?php if (!empty($messageErro)) : ?>
+        <div class="rounded-md bg-red-50 p-4 alerta">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
+              <div class="mt-2 text-sm text-red-700">
+              </div>
+            </div>
+            <div class="ml-auto pl-3">
+              <div class="-mx-1.5 -my-1.5">
+                <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
+                  <span class="sr-only">Fechar</span>
+                  <!-- Ícone de X para fechar o alerta -->
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <?php endif; ?>
+    <?php endif; ?>
+
+    <!-- Mensagem de sucesso - BACK END -->
+    <?php if (!empty($message)) : ?>
+      <div class="rounded-md bg-green-50 p-4">
         <div class="flex">
           <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
-            <div class="mt-2 text-sm text-red-700">
-            </div>
+            <p> <?php echo $message; ?> </p>
           </div>
           <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
@@ -216,24 +262,81 @@ pg_close($conn);
         </div>
       </div>
     <?php endif; ?>
-  <?php endif; ?>
 
-  <div class="flex justify-center items-center h-screen">
-    <div class="bg-pink-100 p-8 rounded-lg">
-      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar foto de perfil:</h1>
 
-      <form method="POST" enctype="multipart/form-data">
-        <div class="flex flex-col justify-center items-center">
-          <label for="imagem_perfil" class="text-pink-500 font-itim">Novo foto de perfil:</label>
-          <input type="file" name="imagem_perfil" id="imagem_perfil" class="block w-full text-center rounded-md bg-white">
-          <br>
-          <div class="text-center">
-            <button name="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded">
-              Alterar
-            </button>
-          </div>
-      </form>
-    </div>
+    <!-- Formulário de criação -->
+    <form action="./create.php" method="post" enctype="multipart/form-data" class="mb-8">
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="imagem">
+          Imagem:
+        </label>
+        <input id="imagem" type="file" name="imagem">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="titulo">
+          Título:
+        </label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" placeholder="Como a revolução industrial impacta no meu mau humor?" name="titulo">
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="sinopse">
+          Breve resumo/sinopse:
+        </label>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="conteudo">
+          Conteúdo do post:
+        </label>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="categoria">
+          Categoria:
+        </label>
+        <input type="radio" id="categoria1" name="categoria" value="1">
+        <label for="categoria">Categoria 1</label><br>
+        <input type="radio" id="categoria2" name="categoria" value="2">
+        <label for="categoria">Categoria 2</label><br>
+        <input type="radio" id="categoria3" name="categoria" value="3">
+        <label for="categoria">Categoria 3</label><br>
+      </div>
+      <div class="flex items-center justify-between">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" name="submit">
+          Adicionar
+        </button>
+      </div>
+    </form>
+
+    <!-- Tabela exibindo os dados -->
+    <table class="w-full border-collapse mb-8">
+      <thead>
+        <tr>
+          <th class="border border-gray-400 px-4 py-2">Título</th>
+          <th class="border border-gray-400 px-4 py-2">Imagem</th>
+          <th class="border border-gray-400 px-4 py-2">Sinopse/breve descrição:</th>
+          <th class="border border-gray-400 px-4 py-2">Conteúdo:</th>
+          <th class="border border-gray-400 px-4 py-2">Categoria:</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php while ($row = pg_fetch_assoc($result)) : ?>
+          <tr>
+            <td class="border border-gray-400 px-4 py-2"><?php echo $row['titulo'] ?></td>
+            <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="100%"></td>
+            <td class="border border-gray-400 px-4 py-2"><?php echo $row['sinopse'] ?></td>
+            <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
+            <td class="border border-gray-400 px-4 py-2"><?php echo $row['id_categoria'] ?></td>
+            <td class="border border-gray-400 px-4 py-2">
+              <a href="#" class="text-blue-500 hover:text-blue-700 px-2">Editar</a>
+              <a href="#" class="text-red-500 hover:text-red-700 px-2">Deletar</a>
+            </td>
+          </tr>
+        <?php endwhile; ?>
+
+      </tbody>
+    </table>
   </div>
 
   <!-- LÓGICA DO BOTÃO -->

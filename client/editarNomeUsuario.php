@@ -1,6 +1,6 @@
 <!-- LÓGICA EM PHP -->
 <?php
-include './server/config.php';
+include '../server/config.php';
 
 session_start();
 
@@ -21,22 +21,23 @@ function sanitize($input)
 }
 
 if (isset($_POST['submit'])) {
-  if (empty($_POST['email'])) {
+  if (empty($_POST['nm_usuario'])) {
     $messageErro = 'Por favor, preencha o campo!';
   } else {
-    $email = sanitize($_POST['email']);
+    $nm_usuario = sanitize($_POST['nm_usuario']);
 
-    $sql = "UPDATE tb_usuario SET email = $1 WHERE id_usuario = $2";
-    $result = pg_query_params($conn, $sql, array($email, $_SESSION['id_usuario']));
+    $sql = "UPDATE tb_usuario SET nm_usuario = $1 WHERE id_usuario = $2";
+    $result = pg_query_params($conn, $sql, array($nm_usuario, $_SESSION['id_usuario']));
 
     if ($result) {
       header('Location: ./configuracoes.php');
       exit();
     } else {
-      $messageErro = "Não foi possível editar seu endereço de email, tente novamente mais tarde!";
+      $messageErro = "Não foi possível editar seu nome de usuário, tente novamente mais tarde!";
     }
   }
 }
+
 
 $id_usuario = $_SESSION['id_usuario'];
 
@@ -56,10 +57,10 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alterar email | GyaruGirls</title>
+  <title>Alterar nome de usuário | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './client/css/index.php'; ?>
+  <?php include_once './css/index.php'; ?>
 </head>
 
 <body>
@@ -73,7 +74,7 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" class="h-10">
+            <img src="./images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
@@ -144,6 +145,7 @@ pg_close($conn);
     </div>
   </header>
 
+
   <!-- Mensagem de erro - BACK END -->
   <?php if (isset($_POST['submit'])) : ?>
     <?php if (!empty($messageErro)) : ?>
@@ -177,12 +179,12 @@ pg_close($conn);
 
   <div class="flex justify-center items-center h-screen">
     <div class="bg-pink-100 p-8 rounded-lg">
-      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar endereço de email:</h1>
+      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar nome de usuário:</h1>
 
       <form method="POST">
         <div class="flex flex-col justify-center items-center">
-          <label for="email" class="text-pink-500 font-itim">Novo email:</label>
-          <input type="email" name="email" id="email" class="block w-full text-center rounded-md bg-white placeholder-gray-300" placeholder="email@email.com">
+          <label for="usuario" class="text-pink-500 font-itim">Novo nome:</label>
+          <input type="text" name="nm_usuario" id="nm_usuario" class="block w-full text-center rounded-md bg-white placeholder-gray-300" placeholder=" @123dasilva">
         </div>
         <br>
         <div class="text-center">

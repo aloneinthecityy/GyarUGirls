@@ -1,5 +1,5 @@
 <?php
-include './server/config.php';
+include '../server/config.php';
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -33,7 +33,7 @@ if (isset($_POST['submitComentario'])) {
 }
 
 // retorna os comentários do post atual
-$sqlComentario = "SELECT c.*, u.nm_usuario, u.imagem_perfil, u.updated_at as comentario_updated_at FROM tb_comentario c JOIN tb_usuario u ON c.id_usuario = u.id_usuario WHERE c.id_post = $id_post";
+$sqlComentario = "SELECT c.*, u.nm_usuario, u.imagem_perfil, u.updated_at as comentario_updated_at FROM tb_comentario c JOIN tb_usuario u ON c.id_usuario = u.id_usuario WHERE c.id_post = $id_post ORDER BY c.created_at DESC";
 $resultComentario = pg_query($conn, $sqlComentario);
 
 $id_usuario = $_SESSION['id_usuario'];
@@ -48,7 +48,7 @@ $resultUsuario = pg_query($conn, $sql);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./client/css/fonts.css">
+  <link rel="stylesheet" href="./css/fonts.css">
   <?php
   if (isset($_GET['titulo'])) {
     $titulo = htmlspecialchars($_GET['titulo']);
@@ -57,10 +57,10 @@ $resultUsuario = pg_query($conn, $sql);
   ?>
 
   <!-- Dependências de estilo -->
-  <?php include_once './client/css/index.php'; ?>
+  <?php include_once './css/index.php'; ?>
 </head>
 
-<body class="bg-repeat" style="background-image: url(./client/images/fundofeed.jpg)">
+<body class="bg-repeat" style="background-image: url(./images/fundofeed.jpg)">
   <!--CABEÇALHO-->
   <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -71,7 +71,7 @@ $resultUsuario = pg_query($conn, $sql);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" class="h-10">
+            <img src="./images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
@@ -145,18 +145,23 @@ $resultUsuario = pg_query($conn, $sql);
   <div class="wrapper justify-center	justify-items-center">
 
 
-    <!-- <h1>SECTION DOS POSTS</h1> -->
+    <!-- <h1>SECTION DO POST</h1> -->
     <section class="py-16 px-32 font-itim">
 
       <?php while ($row = pg_fetch_assoc($result)) : ?>
         <div class="content rounded-2xl	bg-pink-300 py-12 px-48">
           <div class="content rounded-2xl">
-
+            <p class="text-3xl font-bold text-center justify-center">
+              <br></br>
+              <?php echo $row['titulo'] ?>
+            </p>
+            <br>
             <div class="justify-content-center text-center">
               <img src="<?php echo $row['imagem'] ?>" class="mx-auto" width="100%" style="border-radius: 3%;">
             </div>
+            <br>
 
-            <div class="dataEcategoria flex justify-between">
+            <div class="flex justify-between font-bold">
               <p><?php echo $row['updated_at'] ?></p>
               <p><?php echo $row['nm_categoria'] ?></p>
             </div>

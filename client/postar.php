@@ -1,9 +1,9 @@
 <!-- LÓGICA EM PHP -->
 <?php
-include './server/config.php';
+include '../server/config.php';
 
 session_start();
-if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 't') {
+if (!isset($_SESSION['id_usuario'])) {
   header('Location: ./404.php');
   exit();
 }
@@ -36,12 +36,12 @@ function uploadImagem($imagem)
     exit;
   }
 
-  $pasta = './client/images/upload_post/';
+  $pasta = './images/post_usuario/';
   $nomeDoArquivo = $imagem['name'];
   $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
   $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
 
-  if ($extensao != 'jpg' && $extensao != 'png' && $extensao != 'gif' && $extensao != 'jpeg') {
+  if (!in_array($extensao, array('jpg', 'png', 'gif', 'jpeg'))) {
     $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
     exit;
   }
@@ -52,21 +52,18 @@ function uploadImagem($imagem)
     $messageErro = 'Erro ao fazer upload da imagem';
     exit;
   } else {
-    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./client/images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./images/post_usuario/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
     return $patch;
   }
 }
 
 if (isset($_POST['submit'])) {
   // Verifica se os campos obrigatórios foram preenchidos
-  if (empty($_POST['titulo']) || empty($_POST['sinopse']) || empty($_POST['conteudo']) || empty($_POST['categoria'])) {
-    $messageErro = 'Por favor, preencha todos os campos obrigatórios';
+  if (empty($_POST['conteudo'])) {
+    $messageErro = 'O post deve conter um conteúdo!';
   } else {
     // Consistência de dados
-    $titulo = sanitize($_POST['titulo']);
-    $sinopse = sanitize($_POST['sinopse']);
     $conteudo = sanitize($_POST['conteudo']);
-    $id_categoria = sanitize($_POST['categoria']);
 
     // Consistência de imagem
     if (isset($_FILES['imagem'])) {
@@ -74,31 +71,28 @@ if (isset($_POST['submit'])) {
       $imagemPatch = uploadImagem($imagem);
     }
 
-    // Verifica se a categoria existe na tabela tb_categoria
-    $sql = "SELECT id_categoria FROM tb_categoria WHERE id_categoria = $1";
-    $result = pg_query_params($conn, $sql, array($id_categoria));
-    if (pg_num_rows($result) == 0) {
-      $messageErro = 'Categoria não encontrada';
-    } else {
-      // Insere os dados na tabela
-      $sql = "INSERT INTO tb_post (id_categoria, titulo, imagem, sinopse, conteudo) VALUES ($1, $2, $3, $4, $5)";
-      $result = pg_query_params($conn, $sql, array($id_categoria, $titulo, $imagemPatch, $sinopse, $conteudo));
+    $id_usuario = $_SESSION['id_usuario'];
 
-      // Verifica se os dados foram inseridos com sucesso
-      if ($result) {
-        $message = 'Dados inseridos com sucesso';
-      } else {
-        $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
-      }
+    // Insere os dados na tabela
+    $sql = "INSERT INTO tb_post_usuario (id_usuario, conteudo, imagem) VALUES ($1, $2, $3)";
+    $result = pg_query_params($conn, $sql, array($id_usuario, $conteudo, $imagemPatch));
+
+    // Verifica se os dados foram inseridos com sucesso
+    if ($result) {
+      $message = 'Dados inseridos com sucesso';
+      header('Location: ./perfil.php');
+    } else {
+      $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
     }
   }
 }
-// Recupera os dados do banco de dados
-$sql = "SELECT * FROM tb_post";
+
+// Seleciona todos os posts do usuário
+$sql = "SELECT * FROM tb_post_usuario WHERE id_usuario = " . $_SESSION['id_usuario'] . " ORDER BY created_at DESC";
 $result = pg_query($conn, $sql);
 
-$sql = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
-$resultUsuario = pg_query($conn, $sql);
+$sqlUsuario = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
+$resultUsuario = pg_query($conn, $sqlUsuario);
 
 // Fecha a conexão com o banco de dados
 pg_close($conn);
@@ -114,10 +108,10 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Criação | GyaruGirls</title>
+  <title>Postar | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './client/css/index.php'; ?>
+  <?php include_once './css/index.php'; ?>
 </head>
 
 <body>
@@ -131,23 +125,13 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" class="h-10">
+            <img src="./images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
           </div>
         </div>
         <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <a href="./postar.php">
-              <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                Postar
-              </button>
-            </a>
-          </div>
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
 
             <!-- Profile dropdown -->
@@ -236,108 +220,57 @@ pg_close($conn);
       <?php endif; ?>
     <?php endif; ?>
 
-    <!-- Mensagem de sucesso - BACK END -->
-    <?php if (!empty($message)) : ?>
-      <div class="rounded-md bg-green-50 p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <p> <?php echo $message; ?> </p>
-          </div>
-          <div class="ml-auto pl-3">
-            <div class="-mx-1.5 -my-1.5">
-              <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
-                <span class="sr-only">Fechar</span>
-                <!-- Ícone de X para fechar o alerta -->
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    <?php endif; ?>
-
-
     <!-- Formulário de criação -->
-    <form action="./create.php" method="post" enctype="multipart/form-data" class="mb-8">
+    <form method="POST" enctype="multipart/form-data" class="mb-8">
+
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="conteudo">
+          Conteúdo do post *:
+        </label>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"></textarea>
+      </div>
+
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="imagem">
-          Imagem:
+          Imagem (opcional):
         </label>
         <input id="imagem" type="file" name="imagem">
       </div>
 
-      <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="titulo">
-          Título:
-        </label>
-        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" placeholder="Como a revolução industrial impacta no meu mau humor?" name="titulo">
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="sinopse">
-          Breve resumo/sinopse:
-        </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"></textarea>
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="conteudo">
-          Conteúdo do post:
-        </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"></textarea>
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="categoria">
-          Categoria:
-        </label>
-        <input type="radio" id="categoria1" name="categoria" value="1">
-        <label for="categoria">Categoria 1</label><br>
-        <input type="radio" id="categoria2" name="categoria" value="2">
-        <label for="categoria">Categoria 2</label><br>
-        <input type="radio" id="categoria3" name="categoria" value="3">
-        <label for="categoria">Categoria 3</label><br>
-      </div>
       <div class="flex items-center justify-between">
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" name="submit">
-          Adicionar
+        <button name="submit" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+          Postar
         </button>
       </div>
     </form>
-
-    <!-- Tabela exibindo os dados -->
-    <table class="w-full border-collapse mb-8">
-      <thead>
-        <tr>
-          <th class="border border-gray-400 px-4 py-2">Título</th>
-          <th class="border border-gray-400 px-4 py-2">Imagem</th>
-          <th class="border border-gray-400 px-4 py-2">Sinopse/breve descrição:</th>
-          <th class="border border-gray-400 px-4 py-2">Conteúdo:</th>
-          <th class="border border-gray-400 px-4 py-2">Categoria:</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php while ($row = pg_fetch_assoc($result)) : ?>
-          <tr>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['titulo'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="100%"></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['sinopse'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['id_categoria'] ?></td>
-            <td class="border border-gray-400 px-4 py-2">
-              <a href="#" class="text-blue-500 hover:text-blue-700 px-2">Editar</a>
-              <a href="#" class="text-red-500 hover:text-red-700 px-2">Deletar</a>
-            </td>
-          </tr>
-        <?php endwhile; ?>
-
-      </tbody>
-    </table>
   </div>
+
+  <!-- Tabela exibindo os posts do usuário -->
+  <table class="w-full border-collapse mb-8">
+    <thead>
+      <tr>
+        <th class="border border-gray-400 px-4 py-2">Conteúdo</th>
+        <th class="border border-gray-400 px-4 py-2">Imagem</th>
+        <th class="border border-gray-400 px-4 py-2">Postado em:</th>
+        <th class="border border-gray-400 px-4 py-2">Apagar?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php while ($row = pg_fetch_assoc($result)) : ?>
+        <tr>
+          <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
+          <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="15%"></td>
+          <td class="border border-gray-400 px-4 py-2"><?php echo $row['created_at'] ?></td>
+          <td class="border border-gray-400 px-4 py-2">
+            <button name="apagar" class="text-blue-500 hover:text-blue-700 px-2">
+              Apagar!
+            </button>
+          </td>
+        </tr>
+      <?php endwhile; ?>
+
+    </tbody>
+  </table>
 
   <!-- LÓGICA DO BOTÃO -->
   <script>

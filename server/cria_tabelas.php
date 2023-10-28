@@ -9,11 +9,11 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         email VARCHAR(50) NOT NULL UNIQUE,
         senha VARCHAR(50) NOT NULL,
         is_admin BOOLEAN DEFAULT FALSE,
-        imagem_perfil VARCHAR(100) DEFAULT './client/images/perfil_usuario/default.jpg',
+        imagem_perfil VARCHAR(100) DEFAULT './images/perfil_usuario/default.jpg',
         cargo VARCHAR(50),
         bio TEXT,
-        created_at DATE DEFAULT CURRENT_DATE,
-        updated_at DATE DEFAULT CURRENT_DATE
+       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS tb_categoria (
@@ -28,8 +28,8 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         imagem VARCHAR(100) NOT NULL,
         sinopse text NOT NULL,
         conteudo text NOT NULL,
-        created_at DATE DEFAULT CURRENT_DATE,
-        updated_at DATE DEFAULT CURRENT_DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (id_categoria) REFERENCES tb_categoria(id_categoria)
       );
 
@@ -38,7 +38,7 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         id_post INTEGER NOT NULL,
         id_usuario INTEGER NOT NULL,
         comentario TEXT NOT NULL,
-        created_at DATE DEFAULT CURRENT_DATE,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (id_post) REFERENCES tb_post (id_post),
         FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
       );
@@ -48,7 +48,7 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         id_usuario INTEGER NOT NULL,
         imagem VARCHAR(100),
         conteudo TEXT NOT NULL,
-        created_at DATE DEFAULT CURRENT_DATE,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
       );
 

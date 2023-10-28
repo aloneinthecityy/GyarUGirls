@@ -1,6 +1,6 @@
 <!-- LÓGICA EM PHP -->
 <?php
-include './server/config.php';
+include '../server/config.php';
 
 session_start();
 
@@ -12,35 +12,12 @@ if (!isset($_SESSION['id_usuario'])) {
 $message = '';
 $messageErro = '';
 
-function sanitize($input)
-{
-  $input = trim($input);
-  $input = strip_tags($input);
-  $input = htmlspecialchars($input);
-  return $input;
-}
-
-if (isset($_POST['submit'])) {
-  if (empty($_POST['senha'])) {
-    $messageErro = 'Por favor, preencha o campo!';
-  } else {
-    $senha = sanitize($_POST['senha']);
-    $senhaCriptografada = md5($senha);
-
-    $sql = "UPDATE tb_usuario SET senha = $1 WHERE id_usuario = $2";
-    $result = pg_query_params($conn, $sql, array($senhaCriptografada, $_SESSION['id_usuario']));
-
-    if ($result) {
-      header('Location: ./configuracoes.php');
-      exit();
-    } else {
-      $messageErro = "Não foi possível editar sua senha, tente novamente mais tarde!";
-    }
-  }
-}
+// Recupera os dados do banco de dados
+$id_usuario = $_SESSION['id_usuario'];
+$sql = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
+$result = pg_query($conn, $sql);
 
 $id_usuario = $_SESSION['id_usuario'];
-
 $sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
 $resultUsuario = pg_query($conn, $sqlUsuario);
 
@@ -58,10 +35,10 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alterar senha | GyaruGirls</title>
+  <title>Configurações | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './client/css/index.php'; ?>
+  <?php include_once './css/index.php'; ?>
 </head>
 
 <body>
@@ -75,7 +52,7 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./client/images/gatito.png" class="h-10">
+            <img src="./images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
@@ -147,53 +124,97 @@ pg_close($conn);
   </header>
 
   <!-- Mensagem de erro - BACK END -->
-  <?php if (isset($_POST['submit'])) : ?>
-    <?php if (!empty($messageErro)) : ?>
-      <div class="rounded-md bg-red-50 p-4 alerta">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-            </svg>
+  <?php if (!empty($messageErro)) : ?>
+    <div class="rounded-md bg-red-50 p-4 alerta">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
+          <div class="mt-2 text-sm text-red-700">
           </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
-            <div class="mt-2 text-sm text-red-700">
-            </div>
-          </div>
-          <div class="ml-auto pl-3">
-            <div class="-mx-1.5 -my-1.5">
-              <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
-                <span class="sr-only">Fechar</span>
-                <!-- Ícone de X para fechar o alerta -->
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
-                </svg>
-              </button>
-            </div>
+        </div>
+        <div class="ml-auto pl-3">
+          <div class="-mx-1.5 -my-1.5">
+            <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
+              <span class="sr-only">Fechar</span>
+              <!-- Ícone de X para fechar o alerta -->
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
-    <?php endif; ?>
+    </div>
   <?php endif; ?>
 
-  <div class="flex justify-center items-center h-screen">
-    <div class="bg-pink-100 p-8 rounded-lg">
-      <h1 class="text-pink-600 text-2xl font-bold mb-4">Editar senha:</h1>
+  <div class="container mx-auto px-4 mt-6">
+    <h1 class="text-pink-600 text-2xl font-bold mb-4">Informações da conta:</h1>
 
-      <form method="POST">
-        <div class="flex flex-col justify-center items-center">
-          <label for="usuario" class="text-pink-500 font-itim">Novo senha:</label>
-          <input type="password" name="senha" id="senha" class="block w-full text-center rounded-md bg-white placeholder-gray-300" placeholder="email@email.com">
-        </div>
-        <br>
-        <div class="text-center">
-          <button name="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded">
-            Alterar
-          </button>
-        </div>
-      </form>
+
+    <!-- Exibição dos dados ATUAIS do usuário -->
+    <?php $row = pg_fetch_assoc($result) ?>
+    <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
+      <p>Nome de usuário: <?php echo $row['nm_usuario'] ?></p>
+      <a href="./editarNomeUsuario.php">
+        <button class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Editar</button>
+      </a>
     </div>
+    <br>
+
+    <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
+      <p>E-mail: <?php echo $row['email'] ?></p>
+
+      <a href="./editarEmailUsuario.php">
+        <button class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Editar</button>
+      </a>
+    </div>
+    <br>
+
+    <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
+      <p>Bio: <?php echo $row['bio'] ?></p>
+
+      <a href="./editarBioUsuario.php">
+        <button class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Editar</button>
+      </a>
+    </div>
+    <br>
+
+    <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
+      <p>Cargo: <?php echo $row['cargo'] ?></p>
+
+      <a href="./editarCargoUsuario.php">
+        <button class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Editar</button>
+      </a>
+    </div>
+    <br>
+
+    <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
+      <p>Senha: *********** </p>
+
+      <a href="./editarSenhaUsuario.php">
+        <button class="inline-flex items-center bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+          Editar
+        </button>
+      </a>
+    </div>
+
+    <br>
+
+    <div class="flex justify-between items-center border border-gray-400 px-4 py-2">
+      <p>Foto de perfil: <img src="<?php echo $row['imagem_perfil'] ?>" style="width: 20%;"> </p>
+
+      <a href="./editarFotoPerfil.php">
+        <button class=" bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+          Editar
+        </button>
+      </a>
+    </div>
+    <?php  ?>
   </div>
 
   <!-- LÓGICA DO BOTÃO -->

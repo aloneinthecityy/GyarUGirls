@@ -7,7 +7,7 @@
   <title>Página inicial | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include './client/css/index.php' ?>
+  <?php include './css/index.php' ?>
 </head>
 
 <body>
