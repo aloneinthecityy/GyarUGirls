@@ -1,5 +1,6 @@
 # GyarUGirls
-Uma rede social inspirada nos blogs dos anos 2000, para as garotas que têm uma perspectiva diferenciada ;) 
+Uma rede social inspirada nos sites japoneses dos anos 2000, blogs do Tumblr + uma pitadinha de Twitter.
+Seu novo cantinho favorito da internet ;) 
 
 ****Instruções de execução após as imagens!!!
 
