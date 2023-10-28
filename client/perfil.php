@@ -116,8 +116,7 @@ $result = pg_query($conn, $sql);
     <section class="mx-48 my-14 py-14 font-itim bg-zinc-700 rounded-2xl text-white">
       <div class="grid grid-cols-1 justify-center">
         <div class="flex flex-col items-center justify-center px-20 text-center">
-          <img src="<?php echo $row['imagem_perfil'] ?>" class="rounded-full" width="40%">
-          <br>
+          <img src="<?php echo $row['imagem_perfil'] ?>" class="rounded-full" style="border-radius: 50%; width: 200px; height: 200px; object-fit: cover;">
           <h1 class="text-4xl font-bold"><?php echo $_SESSION['nm_usuario'] ?></h1>
           <br>
           <?php if (isset($row['cargo'])) : ?>
@@ -162,74 +161,6 @@ $result = pg_query($conn, $sql);
       </div>
     </section>
   </div>
-
-  <!-- PAGINAÇÃO -->
-  <?php
-  // Define o número de resultados por página
-  $results_per_page = 3;
-
-  // Consulta SQL para obter o número total de resultados
-  $sql = "SELECT COUNT(*) AS total FROM tb_post;";
-  $result = pg_query($conn, $sql);
-  $row = pg_fetch_assoc($result);
-  $total_results = $row['total'];
-
-  // Calcula o número total de páginas
-  $total_pages = ceil($total_results / $results_per_page);
-
-  // Obtém o número da página atual a partir do parâmetro GET
-  $current_page = isset($_GET['page']) ? $_GET['page'] : 1;
-
-  // Exibe os links de página
-  echo '<nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">';
-  echo '<div class="-mt-px mx-12 flex w-0 flex-1">';
-  if ($current_page > 1) {
-    echo '<a href="./feed.php?page=' . ($current_page - 1) . '" class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
-        <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
-        </svg>
-        Previous
-      </a>';
-  } else {
-    echo '<span class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500">
-        <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
-        </svg>
-        Previous
-      </span>';
-  }
-  echo '</div>';
-  echo '<div class="hidden md:-mt-px md:flex">';
-  for ($i = 1; $i <= $total_pages; $i++) {
-    if ($i == $current_page) {
-      echo '<a href="./feed.php?page=' . $i . '" class="inline-flex items-center border-t-2 border-indigo-500 px-4 pt-4 text-sm font-medium text-indigo-600" aria-current="page">
-          ' . $i . '</a>';
-    } else {
-      echo '<a href="./feed.php?page=' . $i . '" class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">' . $i . '</a>';
-    }
-  }
-  echo '</div>';
-  echo '<div class="-mt-px mx-12 flex w-0 flex-1 justify-end">';
-  if ($current_page < $total_pages) {
-    echo '<a href="./feed.php?page=' . ($current_page + 1) . '" class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
-      Next
-      <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
-      </svg>
-    </a>';
-  } else {
-    echo '<span class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500">
-      Next
-      <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
-      </svg>
-    </span>';
-  }
-  echo '</div>';
-  echo '</nav>';
-  echo '<br>'
-  ?>
-
 
 
   <!-- RODAPÉ -->
