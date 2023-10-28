@@ -45,5 +45,5 @@ Se tudo estiver configurado corretamente, você deverá ver a página inicial do
 
 ## Um beijo e um queijo, e até a próxima! :heart:
 <p align="center">
-  <img src="https://i.pinimg.com/originals/9b/d2/e9/9bd2e95b2bf7992bf621e67963fa657b.gif" width="50%">
+  <img src="https://i.pinimg.com/originals/9f/af/7f/9faf7fb19db171dfcce54cc75311eeba.gif" width="50%">
 </p>
