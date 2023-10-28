@@ -1,8 +1,4 @@
 # GyarUGirls
-<p align="center">
-  <img src="https://i.pinimg.com/originals/03/1d/84/031d84125122bb1142bca06ccdc863ea.gif" width="50%">
-</p>
-
 Uma rede social inspirada nos sites japoneses dos anos 2000, blogs do Tumblr + uma pitadinha de Twitter.
 Seu novo cantinho favorito da internet ;) 
 
