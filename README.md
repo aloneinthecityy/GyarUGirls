@@ -7,10 +7,6 @@ Uma rede social inspirada nos sites japoneses dos anos 2000, blogs do Tumblr + u
 Seu novo cantinho favorito da internet ;) 
 
 <p align="center">
-  <img src="https://i.pinimg.com/564x/55/b3/19/55b3190e1028f0cd77ea86be91240353.jpg" width="50%">
-</p>
-
-<p align="center">
   <img src="./client/images/readme/perfil do usuário - posts.png" width="50%">
 </p>
 
