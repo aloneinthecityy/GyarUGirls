@@ -43,6 +43,16 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
       );
 
+      CREATE TABLE IF NOT EXISTS tb_comentario_mural (
+        id_comentario SERIAL PRIMARY KEY,
+        id_usuario_comentador INTEGER NOT NULL,
+        id_usuario INTEGER NOT NULL,
+        comentario TEXT NOT NULL,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_usuario_comentador) REFERENCES tb_usuario (id_usuario)
+      );
+
+
       CREATE TABLE IF NOT EXISTS tb_post_usuario (
         id_post_usuario SERIAL PRIMARY KEY,
         id_usuario INTEGER NOT NULL,
