@@ -1,4 +1,3 @@
-<!-- LÓGICA EM PHP -->
 <?php
 include '../server/config.php';
 
@@ -11,7 +10,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $message = '';
 $messageErro = '';
 
-// Função para "higienizar" a entrada de dados
 function sanitize($input)
 {
   global $conn, $messageErro, $message;
@@ -22,7 +20,6 @@ function sanitize($input)
   return $input;
 }
 
-// Função para enviar a imagem para o servidor
 function uploadImagem($imagem)
 {
   global $message, $messageErro;
@@ -38,8 +35,8 @@ function uploadImagem($imagem)
 
   $pasta = './images/post_usuario/';
   $nomeDoArquivo = $imagem['name'];
-  $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
-  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
+  $novoNome = uniqid();
+  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION));
 
   if (!in_array($extensao, array('jpg', 'png', 'gif', 'jpeg'))) {
     $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
@@ -58,43 +55,61 @@ function uploadImagem($imagem)
 }
 
 if (isset($_POST['submit'])) {
-  // Verifica se os campos obrigatórios foram preenchidos
-  if (empty($_POST['conteudo'])) {
-    $messageErro = 'O post deve conter um conteúdo!';
-  } else {
-    // Consistência de dados
-    $conteudo = sanitize($_POST['conteudo']);
+  $conteudo = sanitize($_POST['conteudo']);
+  $imagem = $_FILES['imagem'];
 
-    // Consistência de imagem
-    if (isset($_FILES['imagem'])) {
-      $imagem = $_FILES['imagem'];
-      $imagemPatch = uploadImagem($imagem);
+  if (empty($conteudo) && empty($imagem["name"])) {
+    $messageErro = 'Preencha pelo menos um dos campos (Conteúdo ou Imagem)!';
+  } else {
+    if ($imagem['error'] == 0) {
+      $imagem = uploadImagem($imagem);
+    } else {
+      $imagem = null;
     }
 
     $id_usuario = $_SESSION['id_usuario'];
 
-    // Insere os dados na tabela
-    $sql = "INSERT INTO tb_post_usuario (id_usuario, conteudo, imagem) VALUES ($1, $2, $3)";
-    $result = pg_query_params($conn, $sql, array($id_usuario, $conteudo, $imagemPatch));
+    $sql = "INSERT INTO tb_post_usuario (id_usuario, imagem, conteudo) VALUES ($1, $2, $3)";
+    $result = pg_query_params(
+      $conn,
+      $sql,
+      array($id_usuario, $imagem, $conteudo)
+    );
 
-    // Verifica se os dados foram inseridos com sucesso
-    if ($result) {
-      $message = 'Dados inseridos com sucesso';
-      header('Location: ./perfil.php');
+    if (!$result) {
+      $messageErro = 'Erro ao salvar o post no banco de dados: ' . pg_last_error($conn);
     } else {
-      $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
+      $message = 'Post criado com sucesso!';
     }
   }
 }
 
-// Seleciona todos os posts do usuário
-$sql = "SELECT * FROM tb_post_usuario WHERE id_usuario = " . $_SESSION['id_usuario'] . " ORDER BY created_at DESC";
-$result = pg_query($conn, $sql);
+if (isset($_POST['apagar'])) {
 
-$sqlUsuario = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
-$resultUsuario = pg_query($conn, $sqlUsuario);
+  $id_post_usuario = sanitize($_POST['id_post_usuario']);
 
-// Fecha a conexão com o banco de dados
+  $sql = "DELETE FROM tb_post_usuario WHERE id_post_usuario = $1";
+  $result = pg_query_params(
+    $conn,
+    $sql,
+    array($id_post_usuario)
+  );
+
+  if (!$result) {
+    $messageErro = 'Erro ao apagar o post no banco de dados: ' . pg_last_error($conn);
+  } else {
+    $message = 'Post apagado com sucesso!';
+  }
+}
+
+
+
+$sql = "SELECT * FROM tb_post_usuario WHERE id_usuario = $1 ORDER BY created_at DESC";
+$result = pg_query_params($conn, $sql, array($_SESSION['id_usuario']));
+
+$sqlUsuario = "SELECT * FROM tb_usuario where id_usuario = $1";
+$resultUsuario = pg_query_params($conn, $sqlUsuario, array($_SESSION['id_usuario']));
+
 pg_close($conn);
 ?>
 
@@ -186,53 +201,54 @@ pg_close($conn);
     </div>
   </header>
 
-  <div class="container mx-auto px-4 mt-6">
-    <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
-
-    <!-- Mensagem de erro - BACK END -->
-    <?php if (isset($_POST['submit'])) : ?>
-      <?php if (!empty($messageErro)) : ?>
-        <div class="rounded-md bg-red-50 p-4 alerta">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-              </svg>
+  <!-- Mensagem de erro - BACK END -->
+  <?php if (isset($_POST['submit'])) : ?>
+    <?php if (!empty($messageErro)) : ?>
+      <div class="rounded-md bg-red-50 p-4 alerta">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
+            <div class="mt-2 text-sm text-red-700">
             </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
-              <div class="mt-2 text-sm text-red-700">
-              </div>
-            </div>
-            <div class="ml-auto pl-3">
-              <div class="-mx-1.5 -my-1.5">
-                <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
-                  <span class="sr-only">Fechar</span>
-                  <!-- Ícone de X para fechar o alerta -->
-                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </div>
+          </div>
+          <div class="ml-auto pl-3">
+            <div class="-mx-1.5 -my-1.5">
+              <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
+                <span class="sr-only">Fechar</span>
+                <!-- Ícone de X para fechar o alerta -->
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
-      <?php endif; ?>
+      </div>
     <?php endif; ?>
+  <?php endif; ?>
+
+  <div class="container mx-auto px-4 mt-6">
+    <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
+
 
     <!-- Formulário de criação -->
     <form method="POST" enctype="multipart/form-data" class="mb-8">
 
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="conteudo">
-          Conteúdo do post *:
+          Conteúdo do post:
         </label>
         <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"></textarea>
       </div>
 
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="imagem">
-          Imagem (opcional):
+          Imagem:
         </label>
         <input id="imagem" type="file" name="imagem">
       </div>
@@ -262,9 +278,12 @@ pg_close($conn);
           <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="15%"></td>
           <td class="border border-gray-400 px-4 py-2"><?php echo $row['created_at'] ?></td>
           <td class="border border-gray-400 px-4 py-2">
-            <button name="apagar" class="text-blue-500 hover:text-blue-700 px-2">
-              Apagar!
-            </button>
+            <form method="POST">
+              <input type="hidden" name="id_post_usuario" value="<?php echo $row['id_post_usuario'] ?>">
+              <button type="submit" name="apagar" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Apagar!
+              </button>
+            </form>
           </td>
         </tr>
       <?php endwhile; ?>

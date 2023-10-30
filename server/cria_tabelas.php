@@ -47,8 +47,8 @@ $sql = "CREATE TABLE IF NOT EXISTS tb_usuario (
         id_post_usuario SERIAL PRIMARY KEY,
         id_usuario INTEGER NOT NULL,
         imagem VARCHAR(100),
-        conteudo TEXT NOT NULL,
- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        conteudo TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (id_usuario) REFERENCES tb_usuario (id_usuario)
       );
 
