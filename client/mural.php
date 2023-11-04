@@ -53,7 +53,6 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
 </head>
 
 <body class="bg-repeat" style="background-image: url(./images/fundofeed.jpg)">
-  <!--CABEÇALHO-->
   <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 justify-between">
@@ -70,6 +69,21 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
           </div>
         </div>
         <div class="flex items-center">
+          <div class="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end">
+            <div class="w-full max-w-lg lg:max-w-xs">
+              <form action="search.php" method="get">
+                <label for="search" class="sr-only">Search</label>
+                <div class="relative">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <input id="search" name="search" class="block w-full rounded-md border-0 bg-pink-100 py-1.5 pl-10 pr-3 text-gray-300 placeholder:text-gray-400 focus:bg-white focus:text-gray-900 focus:ring-0 sm:text-sm sm:leading-6" placeholder="Pesquise usuários" type="search">
+                </div>
+              </form>
+            </div>
+          </div>
           <div class="flex-shrink-0">
             <a href="./postar.php">
               <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
@@ -95,7 +109,7 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./meuPerfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
@@ -122,7 +136,7 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
           </div>
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
-            <div class="text-sm font-medium text-pink-600"><a href="./perfil.php">Meu perfil</a></div>
+            <div class="text-sm font-medium text-pink-600"><a href="./meuPerfil.php">Meu perfil</a></div>
             <div class="text-sm font-medium text-pink-600"><a href="./configuracoes.php">Configurações</a></div>
             <form action="./logout.php" method="POST">
               <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Logout</button>

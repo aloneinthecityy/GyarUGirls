@@ -1,14 +1,48 @@
 <?php
 include '../server/config.php';
 session_start();
+if (!isset($_SESSION['id_usuario'])) {
+  header('Location: login.php');
+  exit();
+}
+
 $id_usuario = $_SESSION['id_usuario'];
 
+// cabeçalho
 $sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
 $resultUsuario = pg_query($conn, $sqlUsuario);
 
-$sql = "SELECT * FROM tb_post_usuario WHERE id_usuario = $id_usuario ORDER BY created_at DESC";
-$result = pg_query($conn, $sql);
+// resultados
 
+if (!isset($_GET['id'])) {
+  header('Location: ./404.php');
+  exit();
+}
+$id_usuario_pesquisado = $_GET['id']; // Obter o ID do usuário a partir do parâmetro GET
+
+$sqlUsuarioPesquisado = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario_pesquisado";
+$resultUsuarioPesquisado = pg_query($conn, $sqlUsuarioPesquisado);
+
+
+$sqlNmUsuario = "SELECT nm_usuario FROM tb_usuario WHERE id_usuario = $id_usuario_pesquisado";
+$resultNmUsuario = pg_query($conn, $sqlNmUsuario);
+$rowNmUsuario = pg_fetch_assoc($resultNmUsuario);
+
+if ($rowNmUsuario) {
+  $nm_usuario = $rowNmUsuario['nm_usuario'];
+  global $nm_usuario;
+} else {
+  echo "Usuário não encontrado.";
+}
+
+$sqlPosts = "SELECT * FROM tb_post_usuario WHERE id_usuario = $id_usuario_pesquisado";
+$resultPosts = pg_query($conn, $sqlPosts);
+
+if ($resultPosts) {
+  $rowPost = pg_fetch_assoc($resultPosts);
+} else {
+  $rowPost = false;
+}
 ?>
 
 
@@ -19,8 +53,7 @@ $result = pg_query($conn, $sql);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo $_SESSION['nm_usuario']  ?></title>
-
+  <title><?php echo $nm_usuario ?> </title>
 
   <!-- Dependências de estilo -->
   <?php include_once './css/index.php'; ?>
@@ -44,6 +77,25 @@ $result = pg_query($conn, $sql);
           </div>
         </div>
         <div class="flex items-center">
+          <!-- <form action="search.php" method="get">
+            <input type="text" name="search" placeholder="Search users">
+            <button type="submit">Search</button>
+          </form> -->
+          <div class="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end">
+            <div class="w-full max-w-lg lg:max-w-xs">
+              <form action="search.php" method="get">
+                <label for="search" class="sr-only">Search</label>
+                <div class="relative">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <input id="search" name="search" class="block w-full rounded-md border-0 bg-gray-700 py-1.5 pl-10 pr-3 text-gray-300 placeholder:text-gray-400 focus:bg-white focus:text-gray-900 focus:ring-0 sm:text-sm sm:leading-6" placeholder="Pesquise usuários" type="search">
+                </div>
+              </form>
+            </div>
+          </div>
           <div class="flex-shrink-0">
             <a href="./postar.php">
               <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
@@ -69,7 +121,7 @@ $result = pg_query($conn, $sql);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./meuPerfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
@@ -96,7 +148,7 @@ $result = pg_query($conn, $sql);
           </div>
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
-            <div class="text-sm font-medium text-pink-600"><a href="./perfil.php">Meu perfil</a></div>
+            <div class="text-sm font-medium text-pink-600"><a href="./meuPerfil.php">Meu perfil</a></div>
             <div class="text-sm font-medium text-pink-600"><a href="./configuracoes.php">Configurações</a></div>
             <form action="./logout.php" method="POST">
               <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Logout</button>
@@ -111,58 +163,65 @@ $result = pg_query($conn, $sql);
 
 
 
+
   <div class="wrapper">
 
     <!-- <h1>SECTION DO PERFIL E POSTS</h1> -->
     <section class="mx-48 my-14 py-14 font-itim bg-zinc-700 rounded-2xl text-white">
-      <div class="grid grid-cols-1 justify-center">
-        <div class="flex flex-col items-center justify-center px-20 text-center">
-          <img src="<?php echo $row['imagem_perfil'] ?>" class="rounded-full" style="border-radius: 50%; width: 200px; height: 200px; object-fit: cover;">
-          <h1 class="text-4xl font-bold"><?php echo $_SESSION['nm_usuario'] ?></h1>
-          <br>
-          <?php if (isset($row['cargo'])) : ?>
-            <div class="inline-block bg-yellow-300 p-2 rounded">
-              <h2 class="text-2xl"><?php echo $row['cargo'] ?></h2>
-            </div>
+      <?php while ($row = pg_fetch_assoc($resultUsuarioPesquisado)) : ?>
+        <div class="grid grid-cols-1 justify-center">
+          <div class="flex flex-col items-center justify-center px-20 text-center">
+            <img src="<?php echo $row['imagem_perfil'] ?>" class="rounded-full" style="border-radius: 50%; width: 200px; height: 200px; object-fit: cover;">
+            <h1 class="text-4xl font-bold"><?php echo $row['nm_usuario'] ?></h1>
             <br>
-          <?php endif; ?>
-
-          <?php if (isset($row['bio'])) : ?>
-            <p class="text-xl"><?php echo $row['bio'] ?></p>
-          <?php endif; ?>
-        </div>
-
-        <div class="flex justify-center space-x-4 mt-8">
-          <a href="#posts" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts</a>
-          <form action="./mural.php" method="get">
-            <input type="hidden" name="id_usuario" value="<?php echo $id_usuario ?>">
-            <button type="submit" name="submit" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Mural</button>
-          </form>
-          <a href="#posts-salvos" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts Salvos</a>
-        </div>
-
-
-        <!-- posts -->
-        <?php while ($row = pg_fetch_assoc($result)) : ?>
-          <div id="posts" class="justify-center bg-zinc-400 mx-28 my-12 rounded-xl text-black">
-            <div class="content rounded-2xl px-8 py-8">
-              <div class="flex justify-between">
-                <p class="font-bold text-lg"><?php echo $_SESSION['nm_usuario'] ?></p>
-                <p class="font bold"><?php echo $row['created_at'] ?></p>
+            <?php if (isset($row['cargo'])) : ?>
+              <div class="inline-block bg-yellow-300 p-2 rounded">
+                <h2 class="text-2xl"><?php echo $row['cargo'] ?></h2>
               </div>
-              <div class="justify-content-center text-left">
-                <?php echo $row['conteudo'] ?>
-              </div>
-              <article class="article text-justify">
-                <br>
-                <p>
-                  <img src="<?php echo $row['imagem'] ?>" class="mx-auto" style="border-radius: 3%;">
-                </p>
-              </article>
-            </div>
+              <br>
+            <?php endif; ?>
+
+            <?php if (isset($row['bio'])) : ?>
+              <p class="text-xl"><?php echo $row['bio'] ?></p>
+            <?php endif; ?>
           </div>
-        <?php endwhile; ?>
-      </div>
+
+          <div class="flex justify-center space-x-4 mt-8">
+            <a href="#posts" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts</a>
+            <form action="./mural.php" method="get">
+              <input type="hidden" name="id_usuario" value="<?php echo $id_usuario ?>">
+              <button type="submit" name="submit" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Mural</button>
+            </form>
+            <a href="#posts-salvos" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts Salvos</a>
+          </div>
+
+
+          <!-- resultados -->
+          <div id="posts" class="justify-center bg-zinc-400 mx-28 my-12 rounded-xl text-black">
+            <?php if ($rowPost) : ?>
+              <div class="content rounded-2xl px-8 py-8">
+                <div class="flex justify-between">
+                  <p class="font-bold text-lg"><?php echo $rowPost['nm_usuario'] ?></p>
+                  <p class="font bold"><?php echo $rowPost['created_at'] ?></p>
+                </div>
+                <div class="justify-content-center text-left">
+                  <?php echo $rowPost['conteudo'] ?>
+                </div>
+                <article class="article text-justify">
+                  <br>
+                  <p>
+                    <img src="<?php echo $rowPost['imagem'] ?>" class="mx-auto" style="border-radius: 3%;">
+                  </p>
+                </article>
+              </div>
+            <?php else : ?>
+              <div class="content rounded-2xl px-8 py-8">
+                <p>Nenhum post encontrado.</p>
+              </div>
+            <?php endif; ?>
+          </div>
+        </div>
+      <?php endwhile; ?>
     </section>
   </div>
 

@@ -2,6 +2,7 @@
 <?php
 session_start();
 
+
 $messageErro = '';
 
 function sanitize($input)
