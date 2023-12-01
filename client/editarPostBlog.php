@@ -1,4 +1,3 @@
-<!-- LÓGICA EM PHP -->
 <?php
 include '../server/config.php';
 
@@ -20,34 +19,73 @@ function sanitize($input)
   return $input;
 }
 
-$id_post = isset($_POST['id_post']) ? $_POST['id_post'] : null;
-$sql = "SELECT * FROM tb_post WHERE id_post = $1";
-$result = pg_query_params($conn, $sql, array($id_post));
-$post = pg_fetch_assoc($result);
-var_dump($id_post);
+function uploadImagem($imagem)
+{
+  global $message, $messageErro;
+  if ($imagem['error'] != 0) {
+    $messageErro = 'Erro ao fazer upload da imagem';
+    exit;
+  }
 
+  if ($imagem['size'] > 2097152) {
+    $messageErro = 'Tamanho de imagem excedido. Tamanho máximo de 2MB!';
+    exit;
+  }
 
-if (isset($_POST['submit'])) {
-  $imagem = isset($_FILES['imagem']) ? $_FILES['imagem'] : '';
-  $titulo = isset($_POST['titulo']) ? sanitize($_POST['titulo']) : '';
-  $sinopse = isset($_POST['sinopse']) ? sanitize($_POST['sinopse']) : '';
-  $conteudo = isset($_POST['conteudo']) ? sanitize($_POST['conteudo']) : '';
-  $id_categoria = isset($_POST['categoria']) ? sanitize($_POST['categoria']) : '';
+  $pasta = './images/upload_post/';
+  $nomeDoArquivo = $imagem['name'];
+  $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
+  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
 
-  $sql = "UPDATE tb_post SET imagem = $imagem, titulo = $titulo, sinopse = $sinopse, conteudo = $conteudo, id_categoria = $id_categoria WHERE id_post = $id_post";
+  if ($extensao != 'jpg' && $extensao != 'png' && $extensao != 'gif' && $extensao != 'jpeg') {
+    $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
+    exit;
+  }
 
-
-  if ($result) {
-    $message = "Post atualizado com sucesso!";
+  $patch = $pasta . $novoNome . '.' . $extensao;
+  $verificaEnvioDoArquivo = move_uploaded_file($imagem['tmp_name'], $patch);
+  if ($verificaEnvioDoArquivo == false) {
+    $messageErro = 'Erro ao fazer upload da imagem';
+    exit;
   } else {
-    $messageErro = "Não foi possível atualizar o post.";
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    return $patch;
   }
 }
 
+
+$id_post = $_GET['id_post'];  
+$sql = "SELECT * FROM tb_post WHERE id_post = $1";
+$result = pg_query_params($conn, $sql, array($id_post));
+
+if (isset($_POST['submit'])) {
+    // Obter os dados atuais do post
+    $sql = "SELECT * FROM tb_post WHERE id_post = $1";
+    $result = pg_query_params($conn, $sql, array($id_post));
+    $currentPost = pg_fetch_assoc($result);
+
+    // Processar o upload da imagem
+    $imagemPath = uploadImagem($_FILES['imagem']);
+
+    // Atualizar os valores no $_POST
+    $_POST['imagem'] = $imagemPath;
+    $updatedPost = array_merge($currentPost, $_POST);
+
+    // Construir a consulta SQL com todas as atualizações
+    $sql = "UPDATE tb_post SET titulo = $1, sinopse = $2, conteudo = $3, id_categoria = $4, imagem = $5 WHERE id_post = $6";
+    $params = array($updatedPost['titulo'], $updatedPost['sinopse'], $updatedPost['conteudo'], $updatedPost['id_categoria'], $updatedPost['imagem'], $id_post);
+    $result = pg_query_params($conn, $sql, $params);
+
+    if ($result) {
+        header('Location: create.php');
+        exit();
+    }
+}
+
 $id_usuario = $_SESSION['id_usuario'];
+
 $sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
 $resultUsuario = pg_query($conn, $sqlUsuario);
-
 ?>
 
 <!-- FRONT-END -->
@@ -57,15 +95,15 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Criação | GyaruGirls</title>
+  <title>Alterar post - Blog | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
   <?php include_once './css/index.php'; ?>
 </head>
 
 <body>
-  <!--CABEÇALHO-->
-  <header class="bg-gradient-to-r from-pink-200 to-pink-300">
+    <!--CABEÇALHO-->
+    <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 justify-between">
         <div class="flex">
@@ -81,16 +119,6 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
           </div>
         </div>
         <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <a href="./postar.php">
-              <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                Postar
-              </button>
-            </a>
-          </div>
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
 
             <!-- Profile dropdown -->
@@ -145,51 +173,21 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
     </div>
   </header>
 
-  <div class="container mx-auto px-4 mt-6">
-    <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
 
-    <!-- Mensagem de erro - BACK END -->
-    <?php if (isset($_POST['submit'])) : ?>
-      <?php if (!empty($messageErro)) : ?>
-        <div class="rounded-md bg-red-50 p-4 alerta">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
-              <div class="mt-2 text-sm text-red-700">
-              </div>
-            </div>
-            <div class="ml-auto pl-3">
-              <div class="-mx-1.5 -my-1.5">
-                <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="document.querySelector('.alerta').style.display='none';">
-                  <span class="sr-only">Fechar</span>
-                  <!-- Ícone de X para fechar o alerta -->
-                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 00-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.648a.5.5 0 000-.707z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      <?php endif; ?>
-    <?php endif; ?>
-
-    <!-- Mensagem de sucesso - BACK END -->
-    <?php if (!empty($message)) : ?>
-      <div class="rounded-md bg-green-50 p-4">
+  <!-- Mensagem de erro - BACK END -->
+  <?php if (isset($_POST['submit'])) : ?>
+    <?php if (!empty($messageErro)) : ?>
+      <div class="rounded-md bg-red-50 p-4 alerta">
         <div class="flex">
           <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
             </svg>
           </div>
           <div class="ml-3">
-            <p> <?php echo $message; ?> </p>
+            <h3 class="text-sm font-medium text-red-800"><?php echo $messageErro; ?></h3>
+            <div class="mt-2 text-sm text-red-700">
+            </div>
           </div>
           <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
@@ -205,50 +203,98 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
         </div>
       </div>
     <?php endif; ?>
+  <?php endif; ?>
 
-    <!-- Formulário de criação -->
-    <form method="post" enctype="multipart/form-data" class="mb-8">
-      <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="imagem">
-          Imagem:
-        </label>
-        <img src="<?php echo $post['imagem'] ?>" alt="Imagem do post" width="20%">
-        <input id="imagem" type="file" name="imagem" value="<?php echo $post['imagem'] ?>">
-      </div>
+<!-- Formulário de edição -->
+<?php $row = pg_fetch_assoc($result) ?>
+<form method="post" enctype="multipart/form-data" class="mb-8">
+<div class="mb-4">
+    <label class="block text-gray-700 font-bold mb-2" for="imagem">
+        Imagem:
+    </label>
+    <input id="imagem" type="file" name="imagem">
+    <br></br>
+    <img src="<?php echo $row['imagem']?>" alt="Imagem do post" width="20%">
+</div>
 
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="titulo">
           Título:
         </label>
-        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" name="titulo" value="<?php echo $post['titulo'] ?>">
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" placeholder="Como a revolução industrial impacta no meu mau humor?" name="titulo" value="<?php echo $row['titulo'] ?>">
       </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="sinopse">
           Breve resumo/sinopse:
         </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"><?php echo $post['sinopse'] ?></textarea>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"><?php echo $row['sinopse'] ?></textarea>
       </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="conteudo">
           Conteúdo do post:
         </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"><?php echo $post['conteudo'] ?></textarea>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"><?php echo $row['conteudo'] ?></textarea>
       </div>
       <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="categoria">
-          Categoria:
+          <label class="block text-gray-700 font-bold mb-2" for="categoria">
+              Categoria:
+              <br>
+              <a>Categoria atual: <?php echo $row['id_categoria'] ?></a>
+              <br></br>
         </label>
-        <p>Categoria escolhida anteriormente: <?php echo $post['id_categoria'] ?></p>
-        <input type="radio" id="categoria1" name="categoria" value="1">
-        <label for="categoria">Categoria 1</label><br>
-        <input type="radio" id="categoria2" name="categoria" value="2">
-        <label for="categoria">Categoria 2</label><br>
-        <input type="radio" id="categoria3" name="categoria" value="3">
-        <label for="categoria">Categoria 3</label><br>
+        <input type="radio" id="categoria1" name="id_categoria" value="1">
+        <label for="id_categoria">Categoria 1</label><br>
+        <input type="radio" id="categoria2" name="id_categoria" value="2">
+        <label for="id_categoria">Categoria 2</label><br>
+        <input type="radio" id="categoria3" name="id_categoria" value="3">
+        <label for="id_categoria">Categoria 3</label><br>
       </div>
       <div class="flex items-center justify-between">
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" name="submit">
-          Alterar
+          Editar
         </button>
       </div>
     </form>
+    <?php  ?>
+
+        <!-- LÓGICA DO BOTÃO -->
+  <script>
+    // Obtém o botão do perfil
+    const profileButton = document.getElementById('user-menu-button');
+
+    // Obtém o elemento de dropdown do perfil
+    const profileDropdown = document.getElementById('profile-dropdown');
+
+    // Define uma variável de estado para controlar se o menu dropdown está visível ou oculto
+    let isProfileDropdownVisible = false;
+
+    // Adiciona um evento de clique ao botão do perfil
+    profileButton.addEventListener('click', function(event) {
+      // Impede que o evento de clique se propague para o documento
+      event.stopPropagation();
+
+      // Alterna o estado da variável de estado do menu dropdown
+      isProfileDropdownVisible = !isProfileDropdownVisible;
+
+      // Mostra ou oculta o elemento de dropdown do perfil com base no estado da variável de estado
+      if (isProfileDropdownVisible) {
+        profileDropdown.classList.remove('hidden');
+      } else {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('click', function(event) {
+      // Oculta o elemento de dropdown do perfil se o usuário clicar fora do menu
+      if (!event.target.closest('#profile-dropdown') && !event.target.closest('#user-menu-button')) {
+
+        // Define o estado da variável de estado do menu dropdown como oculto
+        isProfileDropdownVisible = false;
+
+        // Oculta o elemento de dropdown do perfil
+        profileDropdown.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

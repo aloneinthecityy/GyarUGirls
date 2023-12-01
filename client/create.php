@@ -36,7 +36,7 @@ function uploadImagem($imagem)
     exit;
   }
 
-  $pasta = './images/upload_post/';
+  $pasta = './images/post_usuario/';
   $nomeDoArquivo = $imagem['name'];
   $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
   $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
@@ -94,9 +94,27 @@ if (isset($_POST['submit'])) {
   }
 }
 
+if (isset($_POST['submitDeletar'])) {
+  $id_post = $_POST['id_post'];
+
+  $sql = "DELETE FROM tb_comentario WHERE id_post = $1";
+  $result = pg_query_params($conn, $sql, array($id_post));
+  if (!$result) {
+    $messageErro = 'Erro ao deletar comentários: ' . pg_last_error($conn);
+    return;  // Se houve um erro, interrompe a execução do script
+  }
+
+  $sql = "DELETE FROM tb_post WHERE id_post = $1";
+  $result = pg_query_params($conn, $sql, array($id_post));
+  if ($result) {
+    $message = 'Post deletado com sucesso';
+  } else {
+    $messageErro = 'Erro ao deletar post: ' . pg_last_error($conn);
+  }
+}
 
 // Recupera os dados do banco de dados
-$sql = "SELECT * FROM tb_post ORDER BY id_post DESC";
+$sql = "SELECT * FROM tb_post";
 $result = pg_query($conn, $sql);
 
 $sql = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
@@ -123,8 +141,8 @@ pg_close($conn);
 </head>
 
 <body>
-  <!--CABEÇALHO-->
-  <header class="bg-gradient-to-r from-pink-200 to-pink-300">
+    <!--CABEÇALHO-->
+    <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 justify-between">
         <div class="flex">
@@ -140,16 +158,6 @@ pg_close($conn);
           </div>
         </div>
         <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <a href="./postar.php">
-              <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                Postar
-              </button>
-            </a>
-          </div>
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
 
             <!-- Profile dropdown -->
@@ -204,11 +212,12 @@ pg_close($conn);
     </div>
   </header>
 
+
   <div class="container mx-auto px-4 mt-6">
     <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
 
     <!-- Mensagem de erro - BACK END -->
-    <?php if (isset($_POST['submit'])) : ?>
+    
       <?php if (!empty($messageErro)) : ?>
         <div class="rounded-md bg-red-50 p-4 alerta">
           <div class="flex">
@@ -236,7 +245,6 @@ pg_close($conn);
           </div>
         </div>
       <?php endif; ?>
-    <?php endif; ?>
 
     <!-- Mensagem de sucesso - BACK END -->
     <?php if (!empty($message)) : ?>
@@ -331,15 +339,16 @@ pg_close($conn);
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['id_categoria'] ?></td>
             <td class="border border-gray-400 px-4 py-2">
-              <form action="./editarPostBlog.php" method="POST">
-                <input type="hidden" name="id_post" value="<?php echo $row['id_post'] ?>">
-                <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Editar</button>
+
+              <form action="./editarPostBlog.php" method="get" class="inline">
+                <button type="submit" name="submitComentarios" class="text-blue-500 hover:text-blue-700 px-2">
+                  <a href="./editarPostBlog.php?id_post=<?php echo $row['id_post']; ?>">Editar</a>
+                </button>
               </form>
 
-              <form action="./apagarPostBlog.php" method="POST">
+              <form method="post" class="inline">
                 <input type="hidden" name="id_post" value="<?php echo $row['id_post'] ?>">
-                <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Apagar</button>
-              </form>
+                <button type="submit" name="submitDeletar" class="text-red-500 hover:text-red-700 px-2">Deletar</button>              </form>
             </td>
           </tr>
         <?php endwhile; ?>
