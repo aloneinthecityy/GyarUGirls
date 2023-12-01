@@ -1,5 +1,5 @@
 <?php
-include '../server/config.php';
+include './server/config.php';
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -11,10 +11,9 @@ $id_usuario = $_SESSION['id_usuario'];
 $id_post = $_GET['id_post'];
 
 //retorna o post atual
-$sql = "SELECT A.*, B.nm_categoria 
-        FROM tb_post AS A,
-        tb_categoria AS B WHERE A.id_categoria = B.id_categoria
-        AND A.id_post = $id_post";
+$sql = "SELECT tb_post.*, 
+(SELECT nm_categoria FROM tb_categoria WHERE id_categoria = tb_post.id_categoria)
+ AS nm_categoria FROM tb_post WHERE id_post = $id_post";
 $result = pg_query($conn, $sql);
 
 if (isset($_POST['submitComentario'])) {
@@ -34,10 +33,7 @@ if (isset($_POST['submitComentario'])) {
 }
 
 // retorna os comentários do post atual
-$sqlComentario = "SELECT A.*, B.nm_usuario, B.imagem_perfil, B.updated_at as comentario_updated_at 
-FROM tb_comentario A, tb_usuario B 
-WHERE A.id_usuario = B.id_usuario
-AND A.id_post = $id_post ORDER BY A.created_at DESC";
+$sqlComentario = "SELECT c.*, u.nm_usuario, u.imagem_perfil, u.updated_at as comentario_updated_at FROM tb_comentario c JOIN tb_usuario u ON c.id_usuario = u.id_usuario WHERE c.id_post = $id_post";
 $resultComentario = pg_query($conn, $sqlComentario);
 
 $id_usuario = $_SESSION['id_usuario'];
@@ -52,7 +48,7 @@ $resultUsuario = pg_query($conn, $sql);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./css/fonts.css">
+  <link rel="stylesheet" href="./client/css/fonts.css">
   <?php
   if (isset($_GET['titulo'])) {
     $titulo = htmlspecialchars($_GET['titulo']);
@@ -61,10 +57,10 @@ $resultUsuario = pg_query($conn, $sql);
   ?>
 
   <!-- Dependências de estilo -->
-  <?php include_once './css/index.php'; ?>
+  <?php include_once './client/css/index.php'; ?>
 </head>
 
-<body class="bg-repeat" style="background-image: url(./images/fundofeed.jpg)">
+<body class="bg-repeat" style="background-image: url(./client/images/fundofeed.jpg)">
   <!--CABEÇALHO-->
   <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -75,28 +71,13 @@ $resultUsuario = pg_query($conn, $sql);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./images/gatito.png" class="h-10">
+            <img src="./client/images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
           </div>
         </div>
         <div class="flex items-center">
-          <div class="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end">
-            <div class="w-full max-w-lg lg:max-w-xs">
-              <form action="search.php" method="get">
-                <label for="search" class="sr-only">Search</label>
-                <div class="relative">
-                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                  <input id="search" name="search" class="block w-full rounded-md border-0 bg-pink-100 py-1.5 pl-10 pr-3 text-gray-300 placeholder:text-gray-400 focus:bg-white focus:text-gray-900 focus:ring-0 sm:text-sm sm:leading-6" placeholder="Pesquise usuários" type="search">
-                </div>
-              </form>
-            </div>
-          </div>
           <div class="flex-shrink-0">
             <a href="./postar.php">
               <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
@@ -122,7 +103,7 @@ $resultUsuario = pg_query($conn, $sql);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="./meuPerfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
@@ -149,7 +130,7 @@ $resultUsuario = pg_query($conn, $sql);
           </div>
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
-            <div class="text-sm font-medium text-pink-600"><a href="./meuPerfil.php">Meu perfil</a></div>
+            <div class="text-sm font-medium text-pink-600"><a href="./perfil.php">Meu perfil</a></div>
             <div class="text-sm font-medium text-pink-600"><a href="./configuracoes.php">Configurações</a></div>
             <form action="./logout.php" method="POST">
               <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Logout</button>
@@ -164,23 +145,18 @@ $resultUsuario = pg_query($conn, $sql);
   <div class="wrapper justify-center	justify-items-center">
 
 
-    <!-- <h1>SECTION DO POST</h1> -->
+    <!-- <h1>SECTION DOS POSTS</h1> -->
     <section class="py-16 px-32 font-itim">
 
       <?php while ($row = pg_fetch_assoc($result)) : ?>
         <div class="content rounded-2xl	bg-pink-300 py-12 px-48">
           <div class="content rounded-2xl">
-            <p class="text-3xl font-bold text-center justify-center">
-              <br></br>
-              <?php echo $row['titulo'] ?>
-            </p>
-            <br>
+
             <div class="justify-content-center text-center">
               <img src="<?php echo $row['imagem'] ?>" class="mx-auto" width="100%" style="border-radius: 3%;">
             </div>
-            <br>
 
-            <div class="flex justify-between font-bold">
+            <div class="dataEcategoria flex justify-between">
               <p><?php echo $row['updated_at'] ?></p>
               <p><?php echo $row['nm_categoria'] ?></p>
             </div>

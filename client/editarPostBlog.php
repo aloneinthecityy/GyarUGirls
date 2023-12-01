@@ -3,111 +3,52 @@
 include '../server/config.php';
 
 session_start();
-if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 't') {
-  header('Location: ./404.php');
+
+if (!isset($_SESSION['id_usuario'])) {
+  header('Location: login.php');
   exit();
 }
 
 $message = '';
 $messageErro = '';
 
-// Função para "higienizar" a entrada de dados
 function sanitize($input)
 {
-  global $conn, $messageErro, $message;
   $input = trim($input);
   $input = strip_tags($input);
   $input = htmlspecialchars($input);
-  $input = pg_escape_string($conn, $input);
   return $input;
 }
 
-// Função para enviar a imagem para o servidor
-function uploadImagem($imagem)
-{
-  global $message, $messageErro;
-  if ($imagem['error'] != 0) {
-    $messageErro = 'Erro ao fazer upload da imagem';
-    exit;
-  }
+$id_post = isset($_POST['id_post']) ? $_POST['id_post'] : null;
+$sql = "SELECT * FROM tb_post WHERE id_post = $1";
+$result = pg_query_params($conn, $sql, array($id_post));
+$post = pg_fetch_assoc($result);
+var_dump($id_post);
 
-  if ($imagem['size'] > 2097152) {
-    $messageErro = 'Tamanho de imagem excedido. Tamanho máximo de 2MB!';
-    exit;
-  }
-
-  $pasta = './images/upload_post/';
-  $nomeDoArquivo = $imagem['name'];
-  $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
-  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
-
-  if ($extensao != 'jpg' && $extensao != 'png' && $extensao != 'gif' && $extensao != 'jpeg') {
-    $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
-    exit;
-  }
-
-  $patch = $pasta . $novoNome . '.' . $extensao;
-  $verificaEnvioDoArquivo = move_uploaded_file($imagem['tmp_name'], $patch);
-  if ($verificaEnvioDoArquivo == false) {
-    $messageErro = 'Erro ao fazer upload da imagem';
-    exit;
-  } else {
-    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
-    return $patch;
-  }
-}
 
 if (isset($_POST['submit'])) {
-  // Verifica se os campos obrigatórios foram preenchidos
-  if (empty($_POST['titulo']) || empty($_POST['sinopse']) || empty($_POST['conteudo']) || empty($_POST['categoria'])) {
-    $messageErro = 'Por favor, preencha todos os campos obrigatórios';
+  $imagem = isset($_FILES['imagem']) ? $_FILES['imagem'] : '';
+  $titulo = isset($_POST['titulo']) ? sanitize($_POST['titulo']) : '';
+  $sinopse = isset($_POST['sinopse']) ? sanitize($_POST['sinopse']) : '';
+  $conteudo = isset($_POST['conteudo']) ? sanitize($_POST['conteudo']) : '';
+  $id_categoria = isset($_POST['categoria']) ? sanitize($_POST['categoria']) : '';
+
+  $sql = "UPDATE tb_post SET imagem = $imagem, titulo = $titulo, sinopse = $sinopse, conteudo = $conteudo, id_categoria = $id_categoria WHERE id_post = $id_post";
+
+
+  if ($result) {
+    $message = "Post atualizado com sucesso!";
   } else {
-    // Consistência de dados
-    $titulo = sanitize($_POST['titulo']);
-    $sinopse = sanitize($_POST['sinopse']);
-    $conteudo = sanitize($_POST['conteudo']);
-    $id_categoria = sanitize($_POST['categoria']);
-
-    // Consistência de imagem
-    if (isset($_FILES['imagem'])) {
-      $imagem = $_FILES['imagem'];
-      $imagemPatch = uploadImagem($imagem);
-    }
-
-    // Verifica se a categoria existe na tabela tb_categoria
-    $sql = "SELECT id_categoria FROM tb_categoria WHERE id_categoria = $1";
-    $result = pg_query_params($conn, $sql, array($id_categoria));
-    if (pg_num_rows($result) == 0) {
-      $messageErro = 'Categoria não encontrada';
-    } else {
-      // Insere os dados na tabela
-      $sql = "INSERT INTO tb_post (id_categoria, titulo, imagem, sinopse, conteudo) VALUES ($1, $2, $3, $4, $5)";
-      $result = pg_query_params($conn, $sql, array($id_categoria, $titulo, $imagemPatch, $sinopse, $conteudo));
-
-      // Verifica se os dados foram inseridos com sucesso
-      if ($result) {
-        $message = 'Dados inseridos com sucesso';
-      } else {
-        $messageErro = 'Erro ao inserir dados: ' . pg_last_error($conn);
-      }
-    }
+    $messageErro = "Não foi possível atualizar o post.";
   }
 }
 
+$id_usuario = $_SESSION['id_usuario'];
+$sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
+$resultUsuario = pg_query($conn, $sqlUsuario);
 
-// Recupera os dados do banco de dados
-$sql = "SELECT * FROM tb_post ORDER BY id_post DESC";
-$result = pg_query($conn, $sql);
-
-$sql = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
-$resultUsuario = pg_query($conn, $sql);
-
-// Fecha a conexão com o banco de dados
-pg_close($conn);
 ?>
-
-
-
 
 <!-- FRONT-END -->
 <!DOCTYPE html>
@@ -265,38 +206,39 @@ pg_close($conn);
       </div>
     <?php endif; ?>
 
-
     <!-- Formulário de criação -->
-    <form action="./create.php" method="post" enctype="multipart/form-data" class="mb-8">
+    <form method="post" enctype="multipart/form-data" class="mb-8">
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="imagem">
           Imagem:
         </label>
-        <input id="imagem" type="file" name="imagem">
+        <img src="<?php echo $post['imagem'] ?>" alt="Imagem do post" width="20%">
+        <input id="imagem" type="file" name="imagem" value="<?php echo $post['imagem'] ?>">
       </div>
 
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="titulo">
           Título:
         </label>
-        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" placeholder="Como a revolução industrial impacta no meu mau humor?" name="titulo">
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" name="titulo" value="<?php echo $post['titulo'] ?>">
       </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="sinopse">
           Breve resumo/sinopse:
         </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"></textarea>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"><?php echo $post['sinopse'] ?></textarea>
       </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="conteudo">
           Conteúdo do post:
         </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"></textarea>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"><?php echo $post['conteudo'] ?></textarea>
       </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="categoria">
           Categoria:
         </label>
+        <p>Categoria escolhida anteriormente: <?php echo $post['id_categoria'] ?></p>
         <input type="radio" id="categoria1" name="categoria" value="1">
         <label for="categoria">Categoria 1</label><br>
         <input type="radio" id="categoria2" name="categoria" value="2">
@@ -306,87 +248,7 @@ pg_close($conn);
       </div>
       <div class="flex items-center justify-between">
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" name="submit">
-          Adicionar
+          Alterar
         </button>
       </div>
     </form>
-
-    <!-- Tabela exibindo os dados -->
-    <table class="w-full border-collapse mb-8">
-      <thead>
-        <tr>
-          <th class="border border-gray-400 px-4 py-2">Título</th>
-          <th class="border border-gray-400 px-4 py-2">Imagem</th>
-          <th class="border border-gray-400 px-4 py-2">Sinopse/breve descrição:</th>
-          <th class="border border-gray-400 px-4 py-2">Conteúdo:</th>
-          <th class="border border-gray-400 px-4 py-2">Categoria:</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php while ($row = pg_fetch_assoc($result)) : ?>
-          <tr>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['titulo'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="100%"></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['sinopse'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
-            <td class="border border-gray-400 px-4 py-2"><?php echo $row['id_categoria'] ?></td>
-            <td class="border border-gray-400 px-4 py-2">
-              <form action="./editarPostBlog.php" method="POST">
-                <input type="hidden" name="id_post" value="<?php echo $row['id_post'] ?>">
-                <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Editar</button>
-              </form>
-
-              <form action="./apagarPostBlog.php" method="POST">
-                <input type="hidden" name="id_post" value="<?php echo $row['id_post'] ?>">
-                <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Apagar</button>
-              </form>
-            </td>
-          </tr>
-        <?php endwhile; ?>
-
-      </tbody>
-    </table>
-  </div>
-
-  <!-- LÓGICA DO BOTÃO -->
-  <script>
-    // Obtém o botão do perfil
-    const profileButton = document.getElementById('user-menu-button');
-
-    // Obtém o elemento de dropdown do perfil
-    const profileDropdown = document.getElementById('profile-dropdown');
-
-    // Define uma variável de estado para controlar se o menu dropdown está visível ou oculto
-    let isProfileDropdownVisible = false;
-
-    // Adiciona um evento de clique ao botão do perfil
-    profileButton.addEventListener('click', function(event) {
-      // Impede que o evento de clique se propague para o documento
-      event.stopPropagation();
-
-      // Alterna o estado da variável de estado do menu dropdown
-      isProfileDropdownVisible = !isProfileDropdownVisible;
-
-      // Mostra ou oculta o elemento de dropdown do perfil com base no estado da variável de estado
-      if (isProfileDropdownVisible) {
-        profileDropdown.classList.remove('hidden');
-      } else {
-        profileDropdown.classList.add('hidden');
-      }
-    });
-
-    document.addEventListener('click', function(event) {
-      // Oculta o elemento de dropdown do perfil se o usuário clicar fora do menu
-      if (!event.target.closest('#profile-dropdown') && !event.target.closest('#user-menu-button')) {
-
-        // Define o estado da variável de estado do menu dropdown como oculto
-        isProfileDropdownVisible = false;
-
-        // Oculta o elemento de dropdown do perfil
-        profileDropdown.classList.add('hidden');
-      }
-    });
-  </script>
-</body>
-
-</html>

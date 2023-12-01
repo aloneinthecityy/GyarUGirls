@@ -1,6 +1,6 @@
 <!-- LÓGICA EM PHP -->
 <?php
-include '../server/config.php';
+include './server/config.php';
 
 session_start();
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 't') {
@@ -36,7 +36,7 @@ function uploadImagem($imagem)
     exit;
   }
 
-  $pasta = './images/upload_post/';
+  $pasta = './client/images/upload_post/';
   $nomeDoArquivo = $imagem['name'];
   $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
   $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
@@ -52,7 +52,7 @@ function uploadImagem($imagem)
     $messageErro = 'Erro ao fazer upload da imagem';
     exit;
   } else {
-    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./client/images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
     return $patch;
   }
 }
@@ -94,9 +94,27 @@ if (isset($_POST['submit'])) {
   }
 }
 
+if (isset($_POST['submitDeletar'])) {
+  $id_post = $_POST['id_post'];
+
+  $sql = "DELETE FROM tb_comentario WHERE id_post = $1";
+  $result = pg_query_params($conn, $sql, array($id_post));
+  if (!$result) {
+    $messageErro = 'Erro ao deletar comentários: ' . pg_last_error($conn);
+    return;  // Se houve um erro, interrompe a execução do script
+  }
+
+  $sql = "DELETE FROM tb_post WHERE id_post = $1";
+  $result = pg_query_params($conn, $sql, array($id_post));
+  if ($result) {
+    $message = 'Post deletado com sucesso';
+  } else {
+    $messageErro = 'Erro ao deletar post: ' . pg_last_error($conn);
+  }
+}
 
 // Recupera os dados do banco de dados
-$sql = "SELECT * FROM tb_post ORDER BY id_post DESC";
+$sql = "SELECT * FROM tb_post";
 $result = pg_query($conn, $sql);
 
 $sql = "SELECT * FROM tb_usuario where id_usuario = " . $_SESSION['id_usuario'] . "";
@@ -119,7 +137,7 @@ pg_close($conn);
   <title>Criação | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './css/index.php'; ?>
+  <?php include_once './client/css/index.php'; ?>
 </head>
 
 <body>
@@ -133,7 +151,7 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./images/gatito.png" class="h-10">
+            <img src="./client/images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
@@ -165,7 +183,7 @@ pg_close($conn);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="./meuPerfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
@@ -208,7 +226,7 @@ pg_close($conn);
     <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
 
     <!-- Mensagem de erro - BACK END -->
-    <?php if (isset($_POST['submit'])) : ?>
+    
       <?php if (!empty($messageErro)) : ?>
         <div class="rounded-md bg-red-50 p-4 alerta">
           <div class="flex">
@@ -236,7 +254,6 @@ pg_close($conn);
           </div>
         </div>
       <?php endif; ?>
-    <?php endif; ?>
 
     <!-- Mensagem de sucesso - BACK END -->
     <?php if (!empty($message)) : ?>
@@ -331,15 +348,16 @@ pg_close($conn);
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
             <td class="border border-gray-400 px-4 py-2"><?php echo $row['id_categoria'] ?></td>
             <td class="border border-gray-400 px-4 py-2">
-              <form action="./editarPostBlog.php" method="POST">
-                <input type="hidden" name="id_post" value="<?php echo $row['id_post'] ?>">
-                <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Editar</button>
+
+              <form action="./editarPostBlog.php" method="get" class="inline">
+                <button type="submit" name="submitComentarios" class="text-blue-500 hover:text-blue-700 px-2">
+                  <a href="./editarPostBlog.php?id_post=<?php echo $row['id_post']; ?>">Editar</a>
+                </button>
               </form>
 
-              <form action="./apagarPostBlog.php" method="POST">
+              <form method="post" class="inline">
                 <input type="hidden" name="id_post" value="<?php echo $row['id_post'] ?>">
-                <button name="submit" class="text-sm font-medium text-pink-600" id="user-menu-item-2">Apagar</button>
-              </form>
+                <button type="submit" name="submitDeletar" class="text-red-500 hover:text-red-700 px-2">Deletar</button>              </form>
             </td>
           </tr>
         <?php endwhile; ?>

@@ -1,6 +1,6 @@
 <!-- LÓGICA EM PHP -->
 <?php
-include '../server/config.php';
+include './server/config.php';
 
 session_start();
 
@@ -38,10 +38,10 @@ pg_close($conn);
   <title>Configurações | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './css/index.php'; ?>
+  <?php include_once './client/css/index.php'; ?>
 </head>
 
-<body class="bg-pink-100">
+<body>
   <!--CABEÇALHO-->
   <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -52,7 +52,7 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./images/gatito.png" class="h-10">
+            <img src="./client/images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
@@ -84,7 +84,7 @@ pg_close($conn);
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="./meuPerfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>

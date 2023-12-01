@@ -189,10 +189,9 @@ if ($resultPosts) {
           <div class="flex justify-center space-x-4 mt-8">
             <a href="#posts" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts</a>
             <form action="./mural.php" method="get">
-              <input type="hidden" name="id_usuario" value="<?php echo $id_usuario ?>">
+              <input type="hidden" name="id_usuario" value="<?php echo $id_usuario_pesquisado ?>">
               <button type="submit" name="submit" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Mural</button>
             </form>
-            <a href="#posts-salvos" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts Salvos</a>
           </div>
 
 
@@ -201,7 +200,7 @@ if ($resultPosts) {
             <?php if ($rowPost) : ?>
               <div class="content rounded-2xl px-8 py-8">
                 <div class="flex justify-between">
-                  <p class="font-bold text-lg"><?php echo $rowPost['nm_usuario'] ?></p>
+                  <p class="font-bold text-lg"><?php echo $nm_usuario ?></p>
                   <p class="font bold"><?php echo $rowPost['created_at'] ?></p>
                 </div>
                 <div class="justify-content-center text-left">

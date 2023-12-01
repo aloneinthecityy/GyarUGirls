@@ -158,35 +158,39 @@ $result = pg_query($conn, $sql);
 
         <div class="flex justify-center space-x-4 mt-8">
           <a href="#posts" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts</a>
-          <form action="./mural.php" method="get">
+          <form action="./meuMural.php" method="get">
             <input type="hidden" name="id_usuario" value="<?php echo $id_usuario ?>">
             <button type="submit" name="submit" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Mural</button>
           </form>
-          <a href="#posts-salvos" class="text-lg font-semibold text-blue-500 hover:text-blue-700">Posts Salvos</a>
         </div>
 
 
         <!-- posts -->
-        <?php while ($row = pg_fetch_assoc($result)) : ?>
-          <div id="posts" class="justify-center bg-zinc-400 mx-28 my-12 rounded-xl text-black">
-            <div class="content rounded-2xl px-8 py-8">
-              <div class="flex justify-between">
-                <p class="font-bold text-lg"><?php echo $_SESSION['nm_usuario'] ?></p>
-                <p class="font bold"><?php echo $row['created_at'] ?></p>
+        <?php if (pg_num_rows($result) > 0) : ?>
+          <?php while ($row = pg_fetch_assoc($result)) : ?>
+            <div id="posts" class="justify-center bg-zinc-400 mx-28 my-12 rounded-xl text-black">
+              <div class="content rounded-2xl px-8 py-8">
+                <div class="flex justify-between">
+                  <p class="font-bold text-lg"><?php echo $_SESSION['nm_usuario'] ?></p>
+                  <p class="font-bold"><?php echo $row['created_at'] ?></p>
+                </div>
+                <div class="justify-content-center text-left">
+                  <?php echo $row['conteudo'] ?>
+                </div>
+                <article class="article text-justify">
+                  <br>
+                  <p>
+                    <img src="<?php echo $row['imagem'] ?>" class="mx-auto" style="border-radius: 3%;">
+                  </p>
+                </article>
               </div>
-              <div class="justify-content-center text-left">
-                <?php echo $row['conteudo'] ?>
-              </div>
-              <article class="article text-justify">
-                <br>
-                <p>
-                  <img src="<?php echo $row['imagem'] ?>" class="mx-auto" style="border-radius: 3%;">
-                </p>
-              </article>
             </div>
+          <?php endwhile; ?>
+        <?php else : ?>
+          <div class="content text-center bg-zinc-500 m-20 rounded-2xl px-8 py-8">
+            <p>Nenhum post encontrado.</p>
           </div>
-        <?php endwhile; ?>
-      </div>
+        <?php endif; ?>
     </section>
   </div>
 

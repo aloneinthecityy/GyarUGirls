@@ -1,9 +1,10 @@
 <?php
-include '../server/config.php';
+include './server/config.php';
 
 session_start();
+
 if (!isset($_SESSION['id_usuario'])) {
-  header('Location: ./404.php');
+  header('Location: login.php');
   exit();
 }
 
@@ -12,11 +13,9 @@ $messageErro = '';
 
 function sanitize($input)
 {
-  global $conn, $messageErro, $message;
   $input = trim($input);
   $input = strip_tags($input);
   $input = htmlspecialchars($input);
-  $input = pg_escape_string($conn, $input);
   return $input;
 }
 
@@ -33,12 +32,12 @@ function uploadImagem($imagem)
     exit;
   }
 
-  $pasta = './images/post_usuario/';
+  $pasta = './client/images/upload_post/';
   $nomeDoArquivo = $imagem['name'];
-  $novoNome = uniqid();
-  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION));
+  $novoNome = uniqid(); // CRIA UM NOVO NOME PRA IMAGEM, um nome aleatório
+  $extensao = strtolower(pathinfo($nomeDoArquivo, PATHINFO_EXTENSION)); // elimina a extensão do nome da imagem
 
-  if (!in_array($extensao, array('jpg', 'png', 'gif', 'jpeg'))) {
+  if ($extensao != 'jpg' && $extensao != 'png' && $extensao != 'gif' && $extensao != 'jpeg') {
     $messageErro = 'Formato de imagem inválido. Por favor, envie uma imagem no formato JPG, PNG ou GIF';
     exit;
   }
@@ -49,72 +48,45 @@ function uploadImagem($imagem)
     $messageErro = 'Erro ao fazer upload da imagem';
     exit;
   } else {
-    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./images/post_usuario/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
+    $message = 'Imagem enviada com sucesso, clique aqui para visualizar a imagem <a href= "./client/images/upload_post/' . $novoNome . '.' . $extensao . '">Clique aqui</a>';
     return $patch;
   }
 }
 
+
+$id_post = $_GET['id_post'];  
+$sql = "SELECT * FROM tb_post WHERE id_post = $1";
+$result = pg_query_params($conn, $sql, array($id_post));
+
 if (isset($_POST['submit'])) {
-  $conteudo = sanitize($_POST['conteudo']);
-  $imagem = $_FILES['imagem'];
+    // Obter os dados atuais do post
+    $sql = "SELECT * FROM tb_post WHERE id_post = $1";
+    $result = pg_query_params($conn, $sql, array($id_post));
+    $currentPost = pg_fetch_assoc($result);
 
-  if (empty($conteudo) && empty($imagem["name"])) {
-    $messageErro = 'Preencha pelo menos um dos campos (Conteúdo ou Imagem)!';
-  } else {
-    if ($imagem['error'] == 0) {
-      $imagem = uploadImagem($imagem);
-    } else {
-      $imagem = null;
+    // Processar o upload da imagem
+    $imagemPath = uploadImagem($_FILES['imagem']);
+
+    // Atualizar os valores no $_POST
+    $_POST['imagem'] = $imagemPath;
+    $updatedPost = array_merge($currentPost, $_POST);
+
+    // Construir a consulta SQL com todas as atualizações
+    $sql = "UPDATE tb_post SET titulo = $1, sinopse = $2, conteudo = $3, id_categoria = $4, imagem = $5 WHERE id_post = $6";
+    $params = array($updatedPost['titulo'], $updatedPost['sinopse'], $updatedPost['conteudo'], $updatedPost['id_categoria'], $updatedPost['imagem'], $id_post);
+    $result = pg_query_params($conn, $sql, $params);
+
+    if ($result) {
+        header('Location: create.php');
+        exit();
     }
-
-    $id_usuario = $_SESSION['id_usuario'];
-
-    $sql = "INSERT INTO tb_post_usuario (id_usuario, imagem, conteudo) VALUES ($1, $2, $3)";
-    $result = pg_query_params(
-      $conn,
-      $sql,
-      array($id_usuario, $imagem, $conteudo)
-    );
-
-    if (!$result) {
-      $messageErro = 'Erro ao salvar o post no banco de dados: ' . pg_last_error($conn);
-    } else {
-      $message = 'Post criado com sucesso!';
-    }
-  }
 }
 
-if (isset($_POST['apagar'])) {
+$id_usuario = $_SESSION['id_usuario'];
 
-  $id_post_usuario = sanitize($_POST['id_post_usuario']);
-
-  $sql = "DELETE FROM tb_post_usuario WHERE id_post_usuario = $1";
-  $result = pg_query_params(
-    $conn,
-    $sql,
-    array($id_post_usuario)
-  );
-
-  if (!$result) {
-    $messageErro = 'Erro ao apagar o post no banco de dados: ' . pg_last_error($conn);
-  } else {
-    $message = 'Post apagado com sucesso!';
-  }
-}
-
-
-
-$sql = "SELECT * FROM tb_post_usuario WHERE id_usuario = $1 ORDER BY created_at DESC";
-$result = pg_query_params($conn, $sql, array($_SESSION['id_usuario']));
-
-$sqlUsuario = "SELECT * FROM tb_usuario where id_usuario = $1";
-$resultUsuario = pg_query_params($conn, $sqlUsuario, array($_SESSION['id_usuario']));
-
-pg_close($conn);
+$sqlUsuario = "SELECT * FROM tb_usuario WHERE id_usuario = $id_usuario";
+$resultUsuario = pg_query($conn, $sqlUsuario);
 ?>
-
-
-
 
 <!-- FRONT-END -->
 <!DOCTYPE html>
@@ -123,13 +95,13 @@ pg_close($conn);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Postar | GyaruGirls</title>
+  <title>Alterar post - Blog | GyaruGirls</title>
 
   <!-- Dependências de estilo -->
-  <?php include_once './css/index.php'; ?>
+  <?php include_once './client/css/index.php'; ?>
 </head>
 
-<body class="bg-pink-100">
+<body>
   <!--CABEÇALHO-->
   <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -140,29 +112,39 @@ pg_close($conn);
 
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img src="./images/gatito.png" class="h-10">
+            <img src="./client/images/gatito.png" class="h-10">
             <div class="hidden md:flex md:items-center md:space-x-4 ml-3">
               <a href="./feed.php" class="text-pink-600 font-bold rounded-md text-2xl font-medium">GyarUGirls</a>
             </div>
           </div>
         </div>
         <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <a href="./postar.php">
+              <button type="button" class="relative inline-flex items-center gap-x-1.5 rounded-md bg-pink-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                <svg class="-ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+                Postar
+              </button>
+            </a>
+          </div>
           <div class="hidden md:ml-4 md:flex md:flex-shrink-0 md:items-center">
 
             <!-- Profile dropdown -->
-            <?php $row = pg_fetch_assoc($resultUsuario) ?>
+            <?php $post = pg_fetch_assoc($resultUsuario) ?>
             <div class="relative ml-3">
               <div>
                 <button type="button" id="user-menu-button" class="relative flex rounded-full bg-pink-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                   <span class="absolute -inset-1.5"></span>
                   <span class="sr-only">Open user menu</span>
-                  <img class="h-8 w-8 rounded-full" src="<?php echo $row['imagem_perfil'] ?>" width="20%">
+                  <img class="h-8 w-8 rounded-full" src="<?php echo $post['imagem_perfil'] ?>" width="20%">
                 </button>
               </div>
               <!--dropdown menu-->
               <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="./meuPerfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
+                <a href="./perfil.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Meu perfil</a>
                 <a href="./configuracoes.php" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Configurações</a>
                 <form action="./logout.php" method="POST">
                   <button name="submit" class="block px-4 py-2 text-sm text-gray-700" id="user-menu-item-2">Logout</button>
@@ -185,7 +167,7 @@ pg_close($conn);
       <div class="border-t border-pink-600 pb-3 pt-4">
         <div class="flex items-center px-5 sm:px-6">
           <div class="flex-shrink-0">
-            <img class="h-8 w-8 rounded-full" src="<?php echo $row['imagem_perfil'] ?>" width="20%">
+            <img class="h-8 w-8 rounded-full" src="<?php echo $post['imagem_perfil'] ?>" width="20%">
           </div>
           <div class="ml-3">
             <div class="text-base font-medium text-pink-800">@<?php echo $_SESSION['nm_usuario'] ?></div>
@@ -232,66 +214,59 @@ pg_close($conn);
     <?php endif; ?>
   <?php endif; ?>
 
-  <div class="container mx-auto px-4 mt-6">
-    <h1 class="text-2xl font-bold mb-4">Criação de posts</h1>
+<!-- Formulário de edição -->
+<?php $row = pg_fetch_assoc($result) ?>
+<form method="post" enctype="multipart/form-data" class="mb-8">
+<div class="mb-4">
+    <label class="block text-gray-700 font-bold mb-2" for="imagem">
+        Imagem:
+    </label>
+    <input id="imagem" type="file" name="imagem">
+    <br></br>
+    <img src="<?php echo $row['imagem']?>" alt="Imagem do post" width="20%">
+</div>
 
-
-    <!-- Formulário de criação -->
-    <form method="POST" enctype="multipart/form-data" class="mb-8">
-
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="titulo">
+          Título:
+        </label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" placeholder="Como a revolução industrial impacta no meu mau humor?" name="titulo" value="<?php echo $row['titulo'] ?>">
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="sinopse">
+          Breve resumo/sinopse:
+        </label>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="sinopse" name="sinopse"><?php echo $row['sinopse'] ?></textarea>
+      </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="conteudo">
           Conteúdo do post:
         </label>
-        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"></textarea>
+        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="conteudo" name="conteudo"><?php echo $row['conteudo'] ?></textarea>
       </div>
-
       <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2" for="imagem">
-          Imagem:
+          <label class="block text-gray-700 font-bold mb-2" for="categoria">
+              Categoria:
+              <br>
+              <a>Categoria atual: <?php echo $row['id_categoria'] ?></a>
+              <br></br>
         </label>
-        <input id="imagem" type="file" name="imagem">
+        <input type="radio" id="categoria1" name="id_categoria" value="1">
+        <label for="id_categoria">Categoria 1</label><br>
+        <input type="radio" id="categoria2" name="id_categoria" value="2">
+        <label for="id_categoria">Categoria 2</label><br>
+        <input type="radio" id="categoria3" name="id_categoria" value="3">
+        <label for="id_categoria">Categoria 3</label><br>
       </div>
-
       <div class="flex items-center justify-between">
-        <button name="submit" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Postar
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" name="submit">
+          Editar
         </button>
       </div>
     </form>
-  </div>
+    <?php  ?>
 
-  <!-- Tabela exibindo os posts do usuário -->
-  <table class="w-full border-collapse mb-8">
-    <thead>
-      <tr>
-        <th class="border border-gray-400 px-4 py-2">Conteúdo</th>
-        <th class="border border-gray-400 px-4 py-2">Imagem</th>
-        <th class="border border-gray-400 px-4 py-2">Postado em:</th>
-        <th class="border border-gray-400 px-4 py-2">Apagar?</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php while ($row = pg_fetch_assoc($result)) : ?>
-        <tr>
-          <td class="border border-gray-400 px-4 py-2"><?php echo $row['conteudo'] ?></td>
-          <td class="border border-gray-400 px-4 py-2"><img src="<?php echo $row['imagem'] ?>" width="15%"></td>
-          <td class="border border-gray-400 px-4 py-2"><?php echo $row['created_at'] ?></td>
-          <td class="border border-gray-400 px-4 py-2">
-            <form method="POST">
-              <input type="hidden" name="id_post_usuario" value="<?php echo $row['id_post_usuario'] ?>">
-              <button type="submit" name="apagar" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Apagar!
-              </button>
-            </form>
-          </td>
-        </tr>
-      <?php endwhile; ?>
-
-    </tbody>
-  </table>
-
-  <!-- LÓGICA DO BOTÃO -->
+        <!-- LÓGICA DO BOTÃO -->
   <script>
     // Obtém o botão do perfil
     const profileButton = document.getElementById('user-menu-button');
@@ -331,5 +306,4 @@ pg_close($conn);
     });
   </script>
 </body>
-
 </html>

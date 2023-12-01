@@ -40,7 +40,7 @@ $resultUsuario = pg_query($conn, $sqlUsuario);
   <?php include_once './css/index.php'; ?>
 </head>
 
-<body class="bg-repeat bg-pink-300">
+<body class="bg-pink-300">
   <header class="bg-gradient-to-r from-pink-200 to-pink-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 justify-between">
