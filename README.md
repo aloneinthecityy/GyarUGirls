@@ -3,8 +3,17 @@ Uma rede social inspirada nos sites japoneses dos anos 2000, blogs do Tumblr + u
 Seu novo cantinho favorito da internet ;) 
 
 <p align="center">
-  <img src="./client/images/readme/perfil do usuário - posts.png" width="50%">
+  <img src="./client/images/readme/cadastro.png" width="100%">
 </p>
+
+<p align="center">
+  <img src="./client/images/readme/login.png" width="100%">
+</p>
+
+<p align="center">
+  <img src="./client/images/readme/feed - light mode.png" width="100%">
+</p>
+
 
 ## Pré-requisitos
 - Certifique-se de que você tenha o PHP instalado em seu sistema. Você pode verificar a instalação do PHP digitando o seguinte comando no seu terminal:
@@ -25,6 +34,13 @@ Abra um navegador da web e digite "localhost" na barra de endereço. Isso deve e
 Navegue até o diretório de "GyarUGirls", e digite "localhost/GyarUGirls" na barra de endereço do navegador.
 
 Se tudo estiver configurado corretamente, você deverá ver a página inicial do projeto no navegador.
+
+<p align="center">
+  <img src="./client/images/readme/perfil do usuário - posts.png" width="100%">
+</p>
+<p align="center">
+  <img src="./client/images/readme/perfil do usuário - mural.png" width="100%">
+</p>
 
 ## Um beijo e um queijo, e até a próxima! :heart:
 <p align="center">
