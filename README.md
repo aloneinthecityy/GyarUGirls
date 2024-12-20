@@ -11,7 +11,11 @@ Seu novo cantinho favorito da internet ;)
 </p>
 
 <p align="center">
-  <img src="./client/images/readme/feed - light mode.png" width="100%">
+  <img src="./client/images/readme/perfil do usuário - posts.png" width="100%">
+</p>
+
+<p align="center">
+  <img src="./client/images/readme/perfil do usuário - mural.png" width="100%">
 </p>
 
 
@@ -36,10 +40,11 @@ Navegue até o diretório de "GyarUGirls", e digite "localhost/GyarUGirls" na ba
 Se tudo estiver configurado corretamente, você deverá ver a página inicial do projeto no navegador.
 
 <p align="center">
-  <img src="./client/images/readme/perfil do usuário - posts.png" width="100%">
+  <img src="./client/images/readme/feed - light mode.png" width="100%">
 </p>
+
 <p align="center">
-  <img src="./client/images/readme/perfil do usuário - mural.png" width="100%">
+  <img src="./client/images/readme/página do post.png" width="100%">
 </p>
 
 ## Um beijo e um queijo, e até a próxima! :heart:
